@@ -12,6 +12,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="css/app.css" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
 </head>
 <body>
   <header class="topbar">
@@ -42,6 +44,7 @@
       <h3>Map layers</h3>
       <label><input type="checkbox" id="lyrLand" checked /> Public land &amp; picking rules</label>
       <label><input type="checkbox" id="lyrInat" checked /> Community sightings (iNaturalist)</label>
+      <label><input type="checkbox" id="lyrTrails" checked /> Trails &amp; parking <small>(zoom in)</small></label>
       <label class="sel">Overlay
         <select id="lyrForest">
           <option value="">None</option>
@@ -50,6 +53,9 @@
       <label class="sel">Base map
         <select id="lyrBase"></select>
       </label>
+      <hr />
+      <button class="btn" id="offlineBtn" type="button">Save this area for offline</button>
+      <small class="muted" id="offlineInfo"></small>
     </div>
 
     <aside class="panel" id="panel" aria-live="polite">
@@ -64,6 +70,7 @@
           </div>
           <div id="condBody" class="cond-body"><div class="skeleton">Loading weather…</div></div>
         </section>
+        <section class="card" id="mineCard"></section>
         <section class="card legend" id="legend"></section>
       </div>
     </aside>
@@ -83,17 +90,22 @@
     </form>
   </dialog>
 
+  <dialog id="mineDlg" class="form-dlg"></dialog>
+
   <dialog id="aboutDlg">
     <form method="dialog">
       <h2>How this works</h2>
-      <p><strong>Habitat</strong> combines NLCD land cover (how much deciduous, mixed, or wooded-wetland forest is around) with USFS tree-species maps for host trees like white oak, aspen, elm and maple. The tree maps don't include red or bur oak, so oak habitat is underestimated in places.</p>
-      <p><strong>Timing</strong> compares the season window, last week's temperatures, rain from 2–10 days ago, and soil moisture.</p>
+      <p><strong>Habitat</strong> uses a detailed grid (~140 m cells) built from USFS TreeMap 2023 (every host tree group, big oaks and standing dead trees), NLCD land cover, USGS terrain (bottomlands, slopes, north/south faces), and USFS aerial surveys of tree die-off and NIFC fire maps. Where enough local iNaturalist records exist, a model trained on where each mushroom has actually been found (compared with where people look for fungi in general) is blended in.</p>
+      <p><strong>Timing</strong> uses local season curves from iNaturalist records (adjusted for how many people are out looking each week), last week's temperatures, rain from 2–10 days ago and soil moisture. If someone logged it within about 40 miles in the past two weeks, timing gets a boost. The 7-day strip uses the forecast.</p>
       <p><strong>Access</strong> comes from PAD-US public lands, translated into picking rules. <span id="rulesChecked"></span></p>
       <p><strong>Look</strong> mode counts any open public land. <strong>Harvest</strong> mode counts only land where personal-use picking is allowed, and half-counts land where rules vary.</p>
       <h3>Data sources</h3>
       <ul class="sources">
+        <li><a href="https://doi.org/10.2737/RDS-2026-0038" target="_blank" rel="noopener">USFS TreeMap 2023</a> — trees by species, live and dead, 30 m</li>
         <li><a href="https://www.mrlc.gov/" target="_blank" rel="noopener">NLCD 2021 (MRLC)</a> — land cover, 30 m</li>
-        <li><a href="https://data.fs.usda.gov/geodata/rastergateway/" target="_blank" rel="noopener">USFS FIA Forest Atlas</a> — tree species density, 250 m</li>
+        <li><a href="https://www.usgs.gov/3d-elevation-program" target="_blank" rel="noopener">USGS 3DEP</a> — terrain</li>
+        <li><a href="https://www.fs.usda.gov/foresthealth/applied-sciences/mapping-reporting/detection-surveys.shtml" target="_blank" rel="noopener">USFS Insect &amp; Disease Survey</a> and <a href="https://data-nifc.opendata.arcgis.com/" target="_blank" rel="noopener">NIFC</a> — die-off and fires</li>
+        <li><a href="https://wiki.openstreetmap.org/wiki/Overpass_API" target="_blank" rel="noopener">OpenStreetMap</a> — trails and parking</li>
         <li><a href="https://www.usgs.gov/programs/gap-analysis-project/science/pad-us-data-overview" target="_blank" rel="noopener">PAD-US</a> — public and protected lands</li>
         <li><a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> — weather and soil</li>
         <li><a href="https://www.inaturalist.org/" target="_blank" rel="noopener">iNaturalist</a> — community sightings (locations of some are blurred for privacy)</li>

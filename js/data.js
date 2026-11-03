@@ -163,8 +163,27 @@ export async function publicLandsIn(bounds, zoom) {
     f: 'geojson',
   };
   if (tolDeg) params.maxAllowableOffset = String(tolDeg);
-  const j = await getJSON(CFG.padus + '/query', form(params));
-  return j;
+  return getJSON(publicLandsUrl(params));
+}
+
+export function publicLandsUrl(params) {
+  return CFG.padus + '/query?' + new URLSearchParams(params).toString();
+}
+
+// Exact request the app makes for a box at a zoom (used to pre-cache an area for offline use)
+export function publicLandsRequestUrl(bounds, zoom) {
+  const tolDeg = zoom >= 14 ? 0 : 360 / (256 * 2 ** zoom);
+  const params = {
+    where: '1=1',
+    ...bboxParams(bounds),
+    outFields: 'Unit_Nm,Pub_Access,MngTp_Desc,MngNm_Desc,DesTp_Desc,GAP_Sts,GIS_Acres',
+    returnGeometry: 'true',
+    geometryPrecision: '5',
+    resultRecordCount: '1000',
+    f: 'geojson',
+  };
+  if (tolDeg) params.maxAllowableOffset = String(tolDeg);
+  return publicLandsUrl(params);
 }
 
 export async function publicLandsAt(lng, lat) {
@@ -178,14 +197,17 @@ export async function publicLandsAt(lng, lat) {
     returnGeometry: 'false',
     f: 'json',
   };
-  const j = await getJSON(CFG.padus + '/query', form(params));
+  const j = await getJSON(publicLandsUrl(params));
   return (j.features || []).map((f) => f.attributes);
 }
 
 // ---------- Weather ----------
 // locs: [[lat, lng], ...] -> array of daily weather objects
-export async function weatherAt(locs) {
-  const p = new URLSearchParams({
+export function weatherUrl(locs) {
+  return CFG.openMeteo + '?' + weatherParams(locs).toString();
+}
+function weatherParams(locs) {
+  return new URLSearchParams({
     latitude: locs.map((l) => l[0].toFixed(3)).join(','),
     longitude: locs.map((l) => l[1].toFixed(3)).join(','),
     daily: 'temperature_2m_max,temperature_2m_min,precipitation_sum',
@@ -196,9 +218,15 @@ export async function weatherAt(locs) {
     precipitation_unit: 'inch',
     timezone: 'America/Chicago',
   });
-  const j = await getJSON(CFG.openMeteo + '?' + p.toString());
+}
+export async function weatherAt(locs) {
+  const j = await getJSON(weatherUrl(locs));
   const arr = Array.isArray(j) ? j : [j];
   return arr.map(summarizeWeather);
+}
+
+export function summarizeWeatherJSON(j) {
+  return summarizeWeather(Array.isArray(j) ? j[0] : j);
 }
 
 function summarizeWeather(w) {
@@ -282,4 +310,50 @@ export async function monthHistogram(taxonIds, bounds) {
   });
   const j = await getJSON(`${CFG.inat}/observations/histogram?${p.toString()}`);
   return j.results ? j.results.month_of_year : null;
+}
+
+// Sightings logged in the last `days` days within radiusKm of a point.
+// Returns [{taxonIds:[...ancestors], lat, lng, observed_on}]
+export async function recentNear(lat, lng, radiusKm, taxonIds, days = 14) {
+  const d1 = new Date(Date.now() - days * 864e5).toISOString().slice(0, 10);
+  const p = new URLSearchParams({
+    taxon_id: taxonIds.join(','),
+    lat: lat.toFixed(3), lng: lng.toFixed(3), radius: String(radiusKm),
+    d1, quality_grade: 'research,needs_id', per_page: '200', order_by: 'observed_on', order: 'desc',
+    fields: 'id,observed_on,location,taxon.id,taxon.ancestor_ids',
+  });
+  const j = await getJSON(`${CFG.inat}/observations?${p.toString()}`);
+  return (j.results || []).filter((o) => o.location).map((o) => {
+    const [la, ln] = o.location.split(',').map(Number);
+    return { lat: la, lng: ln, observed_on: o.observed_on, taxa: [...(o.taxon?.ancestor_ids || []), o.taxon?.id] };
+  });
+}
+
+// ---------- Trails and parking (OpenStreetMap via Overpass) ----------
+export function trailsUrl(s, w, n, e) {
+  const bb = `${s.toFixed(3)},${w.toFixed(3)},${n.toFixed(3)},${e.toFixed(3)}`;
+  const q = `[out:json][timeout:25];(way["highway"~"^(path|footway|track|bridleway)$"](${bb});nwr["amenity"="parking"]["access"!~"private|customers"](${bb}););out geom tags;`;
+  return 'https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(q);
+}
+export async function trailsIn(s, w, n, e) {
+  return parseTrails(await getJSON(trailsUrl(s, w, n, e)));
+}
+export function parseTrails(j) {
+  const trails = [], parking = [];
+  for (const el of j.elements || []) {
+    const t = el.tags || {};
+    if (t.amenity === 'parking') {
+      let lat = el.lat, lng = el.lon;
+      if (el.geometry && el.geometry.length) {
+        lat = el.geometry.reduce((a, g) => a + g.lat, 0) / el.geometry.length;
+        lng = el.geometry.reduce((a, g) => a + g.lon, 0) / el.geometry.length;
+      } else if (el.bounds) {
+        lat = (el.bounds.minlat + el.bounds.maxlat) / 2; lng = (el.bounds.minlon + el.bounds.maxlon) / 2;
+      }
+      if (lat != null) parking.push({ lat, lng, name: t.name || '', fee: t.fee || '' });
+    } else if (el.geometry) {
+      trails.push({ coords: el.geometry.map((g) => [g.lat, g.lon]), name: t.name || '', kind: t.highway });
+    }
+  }
+  return { trails, parking };
 }
