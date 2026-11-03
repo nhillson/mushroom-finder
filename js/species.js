@@ -278,3 +278,38 @@ export const SPECIES = {
     temp: { minHigh: 26, idealLow: 34, idealHigh: 55, maxHigh: 70 },
   },
 };
+
+// Preferences used with the detailed habitat grid (data/grid). Host values are weights on
+// live basal area (sq ft/acre, averaged over the cell) for each tree group; hostScale is the
+// weighted basal area that counts as "full" host presence. dead: weights on dead-wood and
+// disturbance bands. terrain: valley (bottomland), slope, north / south (facing).
+const GRID = {
+  oyster: { hosts: { aspen: 1, cottonwood: 1, elm: 0.9, basswood: 0.8, maple: 0.6, willow: 0.6, birch: 0.4 }, hostScale: 15, floor: 0.3,
+    dead: { dead_hw: 1, dmg_aspen: 0.6, dmg_storm: 0.6, dmg_elmash: 0.5 }, terrain: { valley: 0.5 } },
+  hen: { hosts: { oak: 0.6, bigoak: 1 }, hostScale: 12, floor: 0.1, dead: {}, terrain: {} },
+  chicken: { hosts: { oak: 1, bigoak: 0.5, cottonwood: 0.3, willow: 0.3 }, hostScale: 15, floor: 0.15,
+    dead: { dead_hw: 0.6, dmg_oak: 0.6 }, terrain: {} },
+  morel: { hosts: { elm: 1, ash: 1, cottonwood: 0.8, aspen: 0.6 }, hostScale: 8, floor: 0.2,
+    dead: { dead_elmash: 1.2, dmg_elmash: 1, burn: 1 }, terrain: { valley: 0.6, south: 0.3 } },
+  chanterelle: { hosts: { oak: 1, aspen: 0.4, pine: 0.4, birch: 0.3 }, hostScale: 15, floor: 0.2, dead: {}, terrain: { slope: 0.3 } },
+  trumpet: { hosts: { oak: 1, maple: 0.5, basswood: 0.3 }, hostScale: 15, floor: 0.15, dead: {}, terrain: { slope: 0.4, north: 0.3, valley: 0.2 } },
+  bolete: { hosts: { pine: 1, sprucefir: 0.8, aspen: 0.6, birch: 0.6, oak: 0.3 }, hostScale: 15, floor: 0.15, dead: {}, terrain: {} },
+  lobster: { hosts: { pine: 0.8, sprucefir: 0.8, aspen: 0.6, birch: 0.6, oak: 0.4 }, hostScale: 15, floor: 0.25, dead: {}, terrain: {} },
+  hedgehog: { hosts: { pine: 0.6, sprucefir: 0.6, oak: 0.6, aspen: 0.5, birch: 0.5 }, hostScale: 15, floor: 0.25, dead: {}, terrain: { north: 0.2 } },
+  lionsmane: { hosts: { oak: 0.8, bigoak: 0.6, maple: 0.8, basswood: 0.4, birch: 0.3 }, hostScale: 15, floor: 0.2,
+    dead: { dead_hw: 1, dmg_storm: 0.5 }, terrain: {} },
+  cauliflower: { hosts: { bigoak: 1, oak: 0.6, pine: 0.6 }, hostScale: 12, floor: 0.1, dead: {}, terrain: {} },
+  puffball: { hosts: {}, hostScale: 1, floor: 1, dead: {}, terrain: {} },
+  shaggymane: { hosts: {}, hostScale: 1, floor: 1, dead: {}, terrain: {} },
+  honey: { hosts: { oak: 0.8, maple: 0.8, aspen: 0.7, basswood: 0.6, birch: 0.6, elm: 0.5, ash: 0.5 }, hostScale: 15, floor: 0.3,
+    dead: { dead_hw: 1, dmg_oak: 0.5, dmg_storm: 0.5, dmg_elmash: 0.5 }, terrain: {} },
+  velvetfoot: { hosts: { elm: 1, cottonwood: 1, willow: 1, aspen: 0.7 }, hostScale: 10, floor: 0.25,
+    dead: { dead_elmash: 1, dead_hw: 0.6, dmg_elmash: 0.5 }, terrain: { valley: 0.8 } },
+};
+for (const [k, g] of Object.entries(GRID)) SPECIES[k].g = g;
+
+// Readable names for grid bands
+export const GRID_TREES = {
+  oak: 'Oaks (red, bur, white, pin)', maple: 'Maples & boxelder', aspen: 'Aspen & poplar', cottonwood: 'Cottonwood',
+  birch: 'Birch', elm: 'Elm', ash: 'Ash', basswood: 'Basswood', willow: 'Willow', pine: 'Pine', sprucefir: 'Spruce & fir',
+};

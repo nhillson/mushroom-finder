@@ -7,7 +7,27 @@ function doy(mmdd, year) {
   return Math.round((Date.UTC(year, m - 1, d) - Date.UTC(year, 0, 1)) / 864e5);
 }
 
-export function seasonFactor(sp, date = new Date()) {
+// Local season curves (from Twin Cities-area iNaturalist records, relative to how many people
+// are out looking that week). Set by the app once data/model.json loads.
+const LOCAL_SEASON = {};
+export function setLocalSeasons(model) {
+  for (const [k, e] of Object.entries((model && model.species) || {})) if (e.season) LOCAL_SEASON[k] = e.season;
+}
+export function hasLocalSeason(key) {
+  return !!LOCAL_SEASON[key];
+}
+
+export function seasonFactor(sp, date = new Date(), key = null) {
+  const curve = key && LOCAL_SEASON[key];
+  if (curve) {
+    const yday = Math.floor((Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) - Date.UTC(date.getFullYear(), 0, 1)) / 864e5);
+    // the busiest ~half of the season counts as full season
+    return clamp(curve[Math.min(52, Math.floor(yday / 7))] / 0.45);
+  }
+  return ruleSeason(sp, date);
+}
+
+function ruleSeason(sp, date) {
   const y = date.getFullYear();
   const t = doy(`${date.getMonth() + 1}-${date.getDate()}`, y);
   let best = 0;
@@ -39,9 +59,10 @@ export function wetness(w) {
 }
 
 // Timing: is this a good week for this mushroom here?
-export function timing(key, w, date = new Date()) {
+// recent: { days, km } when someone logged this species nearby lately (iNaturalist)
+export function timing(key, w, date = new Date(), recent = null) {
   const sp = SPECIES[key];
-  const season = seasonFactor(sp, date);
+  let season = seasonFactor(sp, date, key);
   let temp = tempFit(sp, w.high7);
   let soilNote = null;
   if (sp.soil && isFinite(w.soilT)) {
@@ -60,12 +81,92 @@ export function timing(key, w, date = new Date()) {
     t *= 0.35;
     notes.push(`Hard freeze recently (${Math.round(w.minLow3)}°F) — late-season flushes are likely done.`);
   }
+  if (recent && recent.days <= 14) {
+    // someone just found it nearby: it's fruiting, whatever the calendar says
+    const floor = recent.days <= 7 ? 0.75 : 0.6;
+    if (t < floor) t = floor;
+    if (season < 0.5) season = 0.5;
+    notes.unshift(`Found ${recent.days === 0 ? 'today' : recent.days === 1 ? 'yesterday' : recent.days + ' days ago'} about ${Math.round(recent.km * 0.621)} mi away.`);
+  }
   if (season === 0) notes.push('Out of season.');
   else if (season < 0.5) notes.push('Edge of the season.');
   if (soilNote && season > 0) notes.push(soilNote);
   if (wet < 0.4) notes.push('Dry lately — fruiting slows until a soaking rain.');
   if (temp < 0.4 && season > 0) notes.push(w.high7 < sp.temp.idealLow ? 'Colder than ideal.' : 'Warmer than ideal.');
   return { value: clamp(t), season, temp, wet, notes };
+}
+
+// Timing for each of the next 7 days, using the forecast. Returns [{date, value}] (today first).
+export function outlook(key, w, recent = null) {
+  const out = [];
+  const ti = w.days.findIndex((d) => d.today);
+  if (ti < 0) return out;
+  for (let i = ti; i < w.days.length; i++) {
+    const day = w.days[i];
+    const date = new Date(day.date + 'T12:00:00');
+    const dw = i === ti ? w : dayWeather(w, i);
+    const r = recent ? { ...recent, days: recent.days + (i - ti) } : null;
+    out.push({ date: day.date, value: timing(key, dw, date, r).value });
+  }
+  return out;
+}
+
+// Weather summary as it will look on day i (forecast days have no soil moisture; soil temp is
+// approximated by the 5-day mean air temperature).
+export function dayWeather(w, i) {
+  const d = w.days;
+  const sum = (a, b) => d.slice(Math.max(0, a), Math.max(0, b)).reduce((s, x) => s + (x.rain || 0), 0);
+  const mean = (a, b, f) => { const s = d.slice(Math.max(0, a), b).map(f).filter((v) => v != null); return s.length ? s.reduce((x, y) => x + y, 0) / s.length : NaN; };
+  return {
+    rainLag: sum(i - 10, i - 1),
+    high7: mean(i - 6, i + 1, (x) => x.hi),
+    low7: mean(i - 6, i + 1, (x) => x.lo),
+    minLow3: Math.min(...d.slice(Math.max(0, i - 2), i + 1).map((x) => x.lo).filter((v) => v != null)),
+    soilT: mean(i - 4, i + 1, (x) => (x.hi != null && x.lo != null ? (x.hi + x.lo) / 2 : null)),
+    soilM: NaN,
+  };
+}
+
+// ---------- habitat from the detailed grid ----------
+// g: band values around the place (data/grid). modelSuit: 0..1 from the sightings model, or null.
+export function habitatGrid(key, g, modelSuit = null) {
+  const sp = SPECIES[key];
+  const p = sp.g;
+  const lcMap = { decid: 'lc_decid', mixed: 'lc_mixed', wetwood: 'lc_wetwood', conifer: 'lc_conifer', grass: 'lc_grass', pasture: 'lc_pasture', devopen: 'lc_devopen', shrub: 'lc_shrub' };
+  let forest = 0;
+  for (const [k, w] of Object.entries(sp.lc)) forest += w * (g[lcMap[k]] || 0);
+  forest = clamp(forest / 0.45);
+  let host = 0;
+  const hits = [];
+  for (const [b, w] of Object.entries(p.hosts)) {
+    const ba = g[b] || 0;
+    host += w * ba;
+    if (ba >= 2) hits.push(b);
+  }
+  host = clamp(host / p.hostScale);
+  // dead wood and recent damage
+  let dead = 0;
+  const deadHits = [];
+  for (const [b, w] of Object.entries(p.dead)) {
+    const v = g[b] || 0;
+    const n = b.startsWith('dead_') ? clamp(v / 5) : clamp(v);
+    dead += w * n;
+    if (n > 0.2) deadHits.push(b);
+  }
+  dead = clamp(dead);
+  // terrain
+  let tsum = 0;
+  const tf = {
+    valley: clamp(-(g.valley ?? 0) / 5, -0.5, 1),
+    slope: clamp(((g.slope ?? 0) - 3) / 12, -0.3, 1),
+    north: g.northness ?? 0,
+    south: -(g.northness ?? 0),
+  };
+  for (const [t, w] of Object.entries(p.terrain)) tsum += w * tf[t];
+  const terrain = clamp(1 + 0.3 * tsum, 0.6, 1.4);
+  let rule = clamp(forest * (p.floor + (1 - p.floor) * host) * terrain + 0.35 * dead * forest);
+  const value = modelSuit == null ? rule : clamp(0.5 * rule + 0.5 * modelSuit);
+  return { value, rule, model: modelSuit, forest, host, dead, terrain, hits, deadHits };
 }
 
 // Habitat from land cover (how much suitable forest) and host-tree density

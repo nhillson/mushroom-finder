@@ -501,6 +501,21 @@ def inat_models():
     bg_ok = [(a, b) for a, b, _, ok in bg if ok]
     log('background fungi points', len(bg), 'precise', len(bg_ok))
     Xb = sample_bands(feats, [p[0] for p in bg_ok], [p[1] for p in bg_ok])
+
+    def weekly(points):
+        wk = np.zeros(53)
+        for _, _, d, _ in points:
+            if d:
+                try:
+                    wk[min(52, time.strptime(d[:10], '%Y-%m-%d').tm_yday // 7)] += 1
+                except ValueError:
+                    pass
+        return wk
+
+    def smooth(wk):
+        return np.convolve(np.concatenate([wk[-2:], wk, wk[:2]]), np.ones(5) / 5, mode='valid')
+
+    bg_week = smooth(weekly(bg))
     model = {'built': time.strftime('%Y-%m-%d'), 'features': feats, 'species': {}}
     for k, taxa in TAXA.items():
         try:
@@ -510,18 +525,12 @@ def inat_models():
             log(k, 'fetch failed', e)
             continue
         entry = {'n': len(pts)}
-        # season: observations by week of year (all records, location precision doesn't matter)
-        wk = np.zeros(53)
-        for _, _, d, _ in pts:
-            if d:
-                try:
-                    tm = time.strptime(d[:10], '%Y-%m-%d')
-                    wk[min(52, tm.tm_yday // 7)] += 1
-                except ValueError:
-                    pass
+        # season: sightings by week of year, divided by how many people log fungi that week
+        # (otherwise everything looks like it peaks in fall, when most people are out looking)
+        wk = weekly(pts)
         if wk.sum() >= 40:
-            sm = np.convolve(np.concatenate([wk[-2:], wk, wk[:2]]), np.ones(5) / 5, mode='valid')
-            entry['season'] = [round(float(v), 4) for v in (sm / sm.max())]
+            ratio = smooth(wk) / (bg_week + 0.03 * bg_week.max())
+            entry['season'] = [round(float(v), 4) for v in (ratio / ratio.max())]
         # habitat model: species points vs all-fungi background (corrects for where people look)
         pos = [(a, b) for a, b, _, ok in pts if ok]
         entry['n_precise'] = len(pos)
