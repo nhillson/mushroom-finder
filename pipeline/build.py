@@ -675,8 +675,8 @@ def trails():
         kept.append((p, cs))
     log(f'trails kept {len(kept)}, dropped {dropped}')
 
-    # trail proximity grid (~250 m cells, widened one cell) for picking trailhead parking
-    TLAT, TLNG = 0.0025, 0.0035
+    # trail proximity grid (~110 m cells, widened one cell -> within ~150-200 m) for trailhead parking
+    TLAT, TLNG = 0.001, 0.0014
     tr_, tc_ = int(round((NORTH - SOUTH) / TLAT)) + 1, int(round((EAST - WEST) / TLNG)) + 1
     tgrid = np.zeros((tr_, tc_), dtype=bool)
     for _, cs in kept:

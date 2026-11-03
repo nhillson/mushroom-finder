@@ -302,10 +302,11 @@ async function loadLands(b) {
   }
 }
 async function refreshLands() {
-  if (!$('#lyrLand').checked || map.getZoom() < 9) {
+  if (map.getZoom() < 9) {
     landLayer.clearLayers();
     return;
   }
+  if (!$('#lyrLand').checked) landLayer.clearLayers();
   const b = map.getBounds().pad(0.15);
   const seq = ++landSeq;
   try {
@@ -313,7 +314,8 @@ async function refreshLands() {
     if (seq !== landSeq) return;
     state.lands = fc;
     state.landsBounds = b;
-    landLayer.clearLayers().addData(fc);
+    if ($('#lyrLand').checked) landLayer.clearLayers().addData(fc);
+    if (map.getZoom() >= 14) refreshTrails(); // parking markers depend on the public land
     if (fc.properties && fc.properties.exceededTransferLimit) toast('Lots of land parcels here — zoom in for complete coverage.');
   } catch (e) {
     toast('Public lands layer failed to load: ' + e.message, 5000);
@@ -367,7 +369,18 @@ async function refreshTrails() {
     // parking: only up close, nearest first, capped, and merged when lots sit next to each other
     if (map.getZoom() >= 14) {
       const c = map.getCenter();
-      const inView = parking.filter((p) => view.contains([p.lat, p.lng]))
+      // only lots on or right next to (~120 m) open public land: these are the ones that serve a park or forest
+      const lands = state.lands;
+      const nearPublic = (p) => {
+        if (!lands) return false;
+        const dLat = 0.0011, dLng = 0.0015;
+        for (const [a, o] of [[0, 0], [dLat, 0], [-dLat, 0], [0, dLng], [0, -dLng]]) {
+          const hits = featuresAt([p.lng + o, p.lat + a], lands);
+          if (hits.some((h) => classifyLand(h.properties, p.lat, p.lng).status !== 'closed')) return true;
+        }
+        return false;
+      };
+      const inView = parking.filter((p) => view.contains([p.lat, p.lng]) && nearPublic(p))
         .sort((a, b2) => ((a.lat - c.lat) ** 2 + (a.lng - c.lng) ** 2) - ((b2.lat - c.lat) ** 2 + (b2.lng - c.lng) ** 2));
       const shown = [];
       for (const p of inView) {
