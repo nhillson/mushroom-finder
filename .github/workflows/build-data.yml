@@ -51,9 +51,12 @@ jobs:
           git config user.name "mushroom-finder-bot"
           git config user.email "actions@users.noreply.github.com"
           mkdir -p data
-          git rm -q --cached data/probe.txt 2>/dev/null || true
+          # this run's data/ replaces whatever is on main (other commits may have landed meanwhile)
+          cp -r data /tmp/newdata
+          git fetch -q origin main
+          git reset -q --hard origin/main
+          rm -rf data && cp -r /tmp/newdata data
           rm -f data/probe.txt
-          git add -A data/ || true
-          git diff --cached --quiet || git commit -m "Update map data [skip ci]"
-          git pull --rebase origin main
-          git push
+          git add -A data/
+          git diff --cached --quiet || git commit -q -m "Update map data [skip ci]"
+          git push origin HEAD:main
