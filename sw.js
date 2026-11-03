@@ -68,7 +68,7 @@ self.addEventListener('fetch', (e) => {
   if (isTile(u)) return e.respondWith(cacheFirst(TILES, req));
   if (isGrid(u)) {
     // tiles rarely change; meta/model refresh in the background
-    if (/\.bin\.gz$/.test(u.pathname)) return e.respondWith(cacheFirst(DATA, req));
+    if (/\.bin\.gz$|\/trails\/\d+_\d+\.json$/.test(u.pathname)) return e.respondWith(cacheFirst(DATA, req));
     return e.respondWith(networkFirst(DATA, req));
   }
   if (isApi(u)) return e.respondWith(networkFirst(API, req));

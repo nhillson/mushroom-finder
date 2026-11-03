@@ -49,12 +49,13 @@ export async function planArea(map, baseKey) {
   if (!tiles) throw new Error('This view is too big to save. Zoom in a little and try again.');
   const items = tiles.map((url) => ({ url, cache: 'mf-tiles' }));
   for (const url of await gridTileUrls(b.getSouth(), b.getWest(), b.getNorth(), b.getEast())) items.push({ url: new URL(url, location.href).href, cache: 'mf-data' });
+  for (const url of await D.trailTileUrls(b.getSouth(), b.getWest(), b.getNorth(), b.getEast())) items.push({ url: new URL(url, location.href).href, cache: 'mf-data' });
   const c = b.getCenter();
   const api = [
     D.publicLandsRequestUrl(b.pad(0.15), map.getZoom()),
     D.weatherUrl([[c.lat, c.lng]]),
   ];
-  if (b.getNorth() - b.getSouth() < 0.4) api.push(D.trailsUrl(b.getSouth(), b.getWest(), b.getNorth(), b.getEast()));
+
   for (const url of api) items.push({ url, cache: 'mf-api' });
   return { items, zMax, base: base.name };
 }

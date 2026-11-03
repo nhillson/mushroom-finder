@@ -572,6 +572,86 @@ def inat_models():
         json.dump(model, f, separators=(',', ':'))
 
 
+# ---------------------------------------------------------------- trails & parking (OpenStreetMap)
+GEOFABRIK = ['https://download.geofabrik.de/north-america/us/minnesota-latest.osm.pbf',
+             'https://download.geofabrik.de/north-america/us/wisconsin-latest.osm.pbf']
+TRAIL_TILE = 0.1  # degrees
+
+
+@step('Trails and parking from OpenStreetMap')
+def trails():
+    import shutil
+    out_dir = 'data/trails'
+    if os.path.isdir(out_dir):
+        shutil.rmtree(out_dir)
+    os.makedirs(out_dir)
+    tiles = {}
+    n_tr = n_pk = 0
+    for url in GEOFABRIK:
+        pbf = os.path.join(WORK, os.path.basename(url))
+        flt = pbf.replace('.osm.pbf', '-trails.osm.pbf')
+        seq = pbf.replace('.osm.pbf', '-trails.geojsonseq')
+        subprocess.run(['curl', '-L', '--retry', '5', '-sS', '-o', pbf, url], check=True)
+        subprocess.run(['osmium', 'extract', '-b', f'{WEST},{SOUTH},{EAST},{NORTH}', '-o', pbf + '.clip.pbf', '--overwrite', pbf], check=True)
+        subprocess.run(['osmium', 'tags-filter', '-o', flt, '--overwrite', pbf + '.clip.pbf',
+                        'w/highway=path,footway,track,bridleway', 'nwr/amenity=parking'], check=True)
+        subprocess.run(['osmium', 'export', '-f', 'geojsonseq', '-o', seq, '--overwrite', '-a', 'type', flt], check=True)
+        with open(seq, encoding='utf-8') as f:
+            for line in f:
+                line = line.strip().lstrip('\x1e')
+                if not line:
+                    continue
+                ft = json.loads(line)
+                p = ft.get('properties') or {}
+                g = ft.get('geometry') or {}
+                if p.get('amenity') == 'parking':
+                    if p.get('access') in ('private', 'customers', 'no'):
+                        continue
+                    if g.get('type') == 'Point':
+                        lng, lat = g['coordinates']
+                    else:
+                        cs = g.get('coordinates')
+                        while cs and isinstance(cs[0][0], list):
+                            cs = cs[0]
+                        if not cs:
+                            continue
+                        lng = sum(c[0] for c in cs) / len(cs)
+                        lat = sum(c[1] for c in cs) / len(cs)
+                    key = (int((lat - SOUTH) // TRAIL_TILE), int((lng - WEST) // TRAIL_TILE))
+                    tiles.setdefault(key, {'t': [], 'p': []})['p'].append([round(lat, 5), round(lng, 5), p.get('name', ''), p.get('fee', '')])
+                    n_pk += 1
+                elif g.get('type') == 'LineString':
+                    if p.get('access') in ('private', 'no'):
+                        continue
+                    cs = g['coordinates']
+                    # light simplification: keep every point at least ~8 m from the last kept one
+                    kept = [cs[0]]
+                    for c in cs[1:-1]:
+                        if abs(c[0] - kept[-1][0]) + abs(c[1] - kept[-1][1]) > 0.0001:
+                            kept.append(c)
+                    kept.append(cs[-1])
+                    mid = kept[len(kept) // 2]
+                    key = (int((mid[1] - SOUTH) // TRAIL_TILE), int((mid[0] - WEST) // TRAIL_TILE))
+                    tiles.setdefault(key, {'t': [], 'p': []})['t'].append(
+                        [p.get('highway', ''), p.get('name', ''), [[round(c[1], 5), round(c[0], 5)] for c in kept]])
+                    n_tr += 1
+        for fn in (pbf, pbf + '.clip.pbf', flt, seq):
+            if os.path.exists(fn):
+                os.remove(fn)
+    total = 0
+    for (i, j), v in tiles.items():
+        if not (0 <= i < round((NORTH - SOUTH) / TRAIL_TILE) and 0 <= j < round((EAST - WEST) / TRAIL_TILE)):
+            continue
+        fn = f'{out_dir}/{i}_{j}.json'
+        data = json.dumps(v, separators=(',', ':'))
+        total += len(data)
+        with open(fn, 'w') as f:
+            f.write(data)
+    with open(f'{out_dir}/meta.json', 'w') as f:
+        json.dump({'south': SOUTH, 'west': WEST, 'size': TRAIL_TILE, 'built': time.strftime('%Y-%m-%d')}, f)
+    log(f'trails {n_tr}, parking {n_pk}, {len(tiles)} tiles, {total / 1e6:.1f} MB')
+
+
 # ---------------------------------------------------------------- write tiles
 @step('Write grid tiles')
 def write_tiles():
@@ -623,6 +703,8 @@ if __name__ == '__main__':
     if want('disturbance'):
         disturbance_ids()
         disturbance_fire()
+    if want('trails'):
+        trails()
     if BANDS:
         write_tiles()
     if want('inat') and BANDS:

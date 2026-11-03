@@ -331,7 +331,7 @@ export async function recentNear(lat, lng, radiusKm, taxonIds, days = 14) {
 
 // ---------- Trails and parking (OpenStreetMap via Overpass) ----------
 // Overpass servers are often busy; try mirrors in turn
-const OVERPASS = ['https://overpass-api.de/api/interpreter', 'https://overpass.private.coffee/api/interpreter', 'https://overpass.kumi.systems/api/interpreter'];
+const OVERPASS = ['https://maps.mail.ru/osm/tools/overpass/api/interpreter', 'https://overpass-api.de/api/interpreter', 'https://overpass.private.coffee/api/interpreter'];
 let overpassOk = 0; // remember the last mirror that answered
 export function trailsUrl(s, w, n, e, mirror = overpassOk) {
   const bb = `${s.toFixed(3)},${w.toFixed(3)},${n.toFixed(3)},${e.toFixed(3)}`;
@@ -371,6 +371,38 @@ export function parseTrails(j) {
     } else if (el.geometry) {
       trails.push({ coords: el.geometry.map((g) => [g.lat, g.lon]), name: t.name || '', kind: t.highway });
     }
+  }
+  return { trails, parking };
+}
+
+// Trails and parking precomputed from OpenStreetMap by the data build (data/trails)
+let trailMetaP = null;
+const trailTiles = new Map();
+function trailMeta() {
+  if (!trailMetaP) trailMetaP = fetch('data/trails/meta.json').then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  return trailMetaP;
+}
+export async function trailTileUrls(s, w, n, e) {
+  const m = await trailMeta();
+  if (!m) return [];
+  const urls = ['data/trails/meta.json'];
+  for (let i = Math.floor((s - m.south) / m.size); i <= Math.floor((n - m.south) / m.size); i++)
+    for (let j = Math.floor((w - m.west) / m.size); j <= Math.floor((e - m.west) / m.size); j++) urls.push(`data/trails/${i}_${j}.json`);
+  return urls;
+}
+// Returns { trails, parking } or null when the precomputed tiles don't exist
+export async function trailsFromTiles(s, w, n, e) {
+  const m = await trailMeta();
+  if (!m) return null;
+  const urls = (await trailTileUrls(s, w, n, e)).slice(1);
+  const parts = await Promise.all(urls.map((u) => {
+    if (!trailTiles.has(u)) trailTiles.set(u, fetch(u).then((r) => (r.ok ? r.json() : { t: [], p: [] })).catch(() => ({ t: [], p: [] })));
+    return trailTiles.get(u);
+  }));
+  const trails = [], parking = [];
+  for (const p of parts) {
+    for (const [kind, name, coords] of p.t) trails.push({ kind, name, coords });
+    for (const [lat, lng, name, fee] of p.p) parking.push({ lat, lng, name, fee });
   }
   return { trails, parking };
 }

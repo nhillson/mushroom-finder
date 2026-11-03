@@ -334,7 +334,7 @@ async function refreshTrails() {
   const key = [s, w, n, e].map((v) => v.toFixed(2)).join(',');
   const seq = ++trailSeq;
   try {
-    if (!trailCache.has(key)) trailCache.set(key, D.trailsIn(s, w, n, e).catch(async (err) => {
+    if (!trailCache.has(key)) trailCache.set(key, D.trailsFromTiles(s, w, n, e).then((t) => t || D.trailsIn(s, w, n, e)).catch(async (err) => {
       trailCache.delete(key);
       const off = await offlineFallback('trails');
       if (off) return D.parseTrails(off);
@@ -470,7 +470,7 @@ function forestHtmlLive(cover, trees) {
       ${cover ? `<dt>Forest nearby</dt><dd>${pct(cover.forest)} of the surrounding ~400 m</dd>` : ''}
       <dt>Host trees</dt><dd>${treeList.length ? treeList.map(([f, v]) => `${TREES[f].name} (${v.toFixed(1)} ft²/ac)`).join(', ') : trees ? 'None of the tracked species mapped here' : '<span class="err">unavailable</span>'}</dd>
     </dl>
-    <p class="muted" style="margin:6px 0 0">Outside the detailed data area: using general national maps.</p>`;
+    <p class="muted" style="margin:6px 0 0">Detailed habitat data isn't available here, so this uses general national maps (less precise).</p>`;
 }
 
 // ---------- spot details ----------
