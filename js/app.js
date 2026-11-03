@@ -425,7 +425,16 @@ function redrawScan() {
   top.sort((a, b) => b.score - a.score);
   const el = $('#scanInfo');
   el.hidden = false;
-  const best = top.slice(0, 5);
+  // one entry per area: keep only the best-scoring cell for each park, forest or WMA
+  const seen = new Set();
+  const best = [];
+  for (const c of top) {
+    const area = c.land.props?.Unit_Nm || c.land.cls.label;
+    if (seen.has(area)) continue;
+    seen.add(area);
+    best.push(c);
+    if (best.length === 5) break;
+  }
   el.innerHTML = `<div class="card-head"><h2>Scan results</h2><button class="btn" id="scanClear">Clear</button></div>
     ${best.length ? `<p class="muted">Best cells in view (${state.mode === 'harvest' ? 'where picking is allowed' : 'on open public land'}). Tap one for details.</p>
     <ol class="kv" style="display:block;padding-left:18px">${best.map((c, i) => `<li><a href="#" data-i="${i}">${esc(c.land.props?.Unit_Nm || c.land.cls.label)}</a> — ${label(c.score)} for ${SPECIES[c.bestK].name.toLowerCase()}</li>`).join('')}</ol>`
