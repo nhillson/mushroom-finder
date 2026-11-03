@@ -94,5 +94,7 @@ section('TreeMap 2023 zip listing', treemap_listing)
 section('TreeMap metadata', treemap_meta)
 section('Endpoints', endpoints)
 
+import os
+os.makedirs('data', exist_ok=True)
 with open('data/probe.txt', 'w') as f:
     f.write('\n'.join(OUT))
