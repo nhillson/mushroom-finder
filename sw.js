@@ -72,7 +72,8 @@ self.addEventListener('fetch', (e) => {
     return e.respondWith(networkFirst(DATA, req));
   }
   if (isApi(u)) return e.respondWith(networkFirst(API, req));
-  if (u.origin === self.location.origin || u.host === 'unpkg.com' || /fonts\.(googleapis|gstatic)\.com/.test(u.host)) {
+  if (u.origin === self.location.origin) return e.respondWith(networkFirst(SHELL, req));
+  if (u.host === 'unpkg.com' || /fonts\.(googleapis|gstatic)\.com/.test(u.host)) {
     return e.respondWith(staleWhileRevalidate(SHELL, req));
   }
 });
