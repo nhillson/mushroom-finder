@@ -190,3 +190,6 @@ button.link { border: 0; background: none; color: #9e2a2b; padding: 0 4px; font-
 .layers-pop hr { border: 0; border-top: 1px solid var(--line); width: 100%; margin: 2px 0; }
 .layers-pop .btn { justify-content: center; }
 label.btn { cursor: pointer; }
+.brand { flex: none; }
+.controls { flex: 1; min-width: 0; justify-content: flex-end; }
+.chips { min-width: 0; }
