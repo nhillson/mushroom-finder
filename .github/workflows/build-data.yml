@@ -1,9 +1,14 @@
 name: Build map data
 
+# Builds data/grid (tree, land cover, terrain, disturbance) and data/model.json (local seasons,
+# sighting-based habitat models). Heavy inputs are cached between runs; sightings and
+# disturbance refresh every week.
 on:
   push:
     branches: [main]
     paths: ['pipeline/**', '.github/workflows/build-data.yml']
+  schedule:
+    - cron: '23 10 * * 1'   # Mondays, ~4:23 am Central
   workflow_dispatch:
 
 permissions:
@@ -16,23 +21,37 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 150
+    timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - name: Install tools
-        run: pip install requests remotezip numpy
-      - name: Run pipeline
-        run: python pipeline/probe.py
+        run: pip install requests numpy pandas scipy scikit-learn pillow rasterio
+      - name: Work space
+        run: |
+          sudo mkdir -p /mnt/work && sudo chown "$USER" /mnt/work
+          df -h / /mnt
+      - name: Restore cached bands
+        uses: actions/cache@v4
+        with:
+          path: ~/band-cache
+          key: bands-v1-${{ github.run_id }}
+          restore-keys: bands-v1-
+      - name: Build
+        env:
+          WORK: /mnt/work
+        run: python pipeline/build.py
       - name: Save results
         if: always()
         run: |
           git config user.name "mushroom-finder-bot"
           git config user.email "actions@users.noreply.github.com"
           mkdir -p data
-          git add data/ || true
+          git rm -q --cached data/probe.txt 2>/dev/null || true
+          rm -f data/probe.txt
+          git add -A data/ || true
           git diff --cached --quiet || git commit -m "Update map data [skip ci]"
           git pull --rebase origin main
           git push
