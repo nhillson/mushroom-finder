@@ -580,22 +580,31 @@ TRAIL_TILE = 0.1  # degrees
 
 @step('Trails and parking from OpenStreetMap')
 def trails():
+    """Real trails only: drop sidewalks and anything that mostly runs alongside a road.
+    Parking: only lots near a remaining trail (trailheads), no street-side or garage parking."""
     import shutil
+    from rasterio.features import rasterize as rz
+    from rasterio.transform import from_origin
+    from scipy.ndimage import binary_dilation
+
     out_dir = 'data/trails'
     if os.path.isdir(out_dir):
         shutil.rmtree(out_dir)
     os.makedirs(out_dir)
-    tiles = {}
-    n_tr = n_pk = 0
+
+    ROAD_TAGS = ('motorway,motorway_link,trunk,trunk_link,primary,primary_link,secondary,secondary_link,'
+                 'tertiary,tertiary_link,unclassified,residential,living_street,service,road')
+    trails_raw, roads, parking_raw = [], [], []
     for url in GEOFABRIK:
         pbf = os.path.join(WORK, os.path.basename(url))
-        flt = pbf.replace('.osm.pbf', '-trails.osm.pbf')
-        seq = pbf.replace('.osm.pbf', '-trails.geojsonseq')
+        clip = pbf + '.clip.pbf'
+        flt = pbf.replace('.osm.pbf', '-flt.osm.pbf')
+        seq = pbf.replace('.osm.pbf', '-flt.geojsonseq')
         subprocess.run(['curl', '-L', '--retry', '5', '-sS', '-o', pbf, url], check=True)
-        subprocess.run(['osmium', 'extract', '-b', f'{WEST},{SOUTH},{EAST},{NORTH}', '-o', pbf + '.clip.pbf', '--overwrite', pbf], check=True)
-        subprocess.run(['osmium', 'tags-filter', '-o', flt, '--overwrite', pbf + '.clip.pbf',
-                        'w/highway=path,footway,track,bridleway', 'nwr/amenity=parking'], check=True)
-        subprocess.run(['osmium', 'export', '-f', 'geojsonseq', '-o', seq, '--overwrite', '-a', 'type', flt], check=True)
+        subprocess.run(['osmium', 'extract', '-b', f'{WEST},{SOUTH},{EAST},{NORTH}', '-o', clip, '--overwrite', pbf], check=True)
+        subprocess.run(['osmium', 'tags-filter', '-o', flt, '--overwrite', clip,
+                        'w/highway=path,footway,track,bridleway', f'w/highway={ROAD_TAGS}', 'nwr/amenity=parking'], check=True)
+        subprocess.run(['osmium', 'export', '-f', 'geojsonseq', '-o', seq, '--overwrite', flt], check=True)
         with open(seq, encoding='utf-8') as f:
             for line in f:
                 line = line.strip().lstrip('\x1e')
@@ -604,52 +613,124 @@ def trails():
                 ft = json.loads(line)
                 p = ft.get('properties') or {}
                 g = ft.get('geometry') or {}
+                hw = p.get('highway')
                 if p.get('amenity') == 'parking':
-                    if p.get('access') in ('private', 'customers', 'no'):
-                        continue
-                    if g.get('type') == 'Point':
-                        lng, lat = g['coordinates']
-                    else:
-                        cs = g.get('coordinates')
-                        while cs and isinstance(cs[0][0], list):
-                            cs = cs[0]
-                        if not cs:
-                            continue
-                        lng = sum(c[0] for c in cs) / len(cs)
-                        lat = sum(c[1] for c in cs) / len(cs)
-                    key = (int((lat - SOUTH) // TRAIL_TILE), int((lng - WEST) // TRAIL_TILE))
-                    tiles.setdefault(key, {'t': [], 'p': []})['p'].append([round(lat, 5), round(lng, 5), p.get('name', ''), p.get('fee', '')])
-                    n_pk += 1
-                elif g.get('type') == 'LineString':
-                    if p.get('access') in ('private', 'no'):
-                        continue
-                    cs = g['coordinates']
-                    # light simplification: keep every point at least ~8 m from the last kept one
-                    kept = [cs[0]]
-                    for c in cs[1:-1]:
-                        if abs(c[0] - kept[-1][0]) + abs(c[1] - kept[-1][1]) > 0.0001:
-                            kept.append(c)
-                    kept.append(cs[-1])
-                    mid = kept[len(kept) // 2]
-                    key = (int((mid[1] - SOUTH) // TRAIL_TILE), int((mid[0] - WEST) // TRAIL_TILE))
-                    tiles.setdefault(key, {'t': [], 'p': []})['t'].append(
-                        [p.get('highway', ''), p.get('name', ''), [[round(c[1], 5), round(c[0], 5)] for c in kept]])
-                    n_tr += 1
-        for fn in (pbf, pbf + '.clip.pbf', flt, seq):
+                    parking_raw.append((p, g))
+                elif hw in ('path', 'footway', 'track', 'bridleway') and g.get('type') == 'LineString':
+                    trails_raw.append((p, g['coordinates']))
+                elif hw and g.get('type') == 'LineString':
+                    roads.append(g)
+        for fn in (pbf, clip, flt, seq):
             if os.path.exists(fn):
                 os.remove(fn)
+    log(f'raw: {len(trails_raw)} trail ways, {len(roads)} roads, {len(parking_raw)} parking')
+
+    # road mask on a ~20 m grid, widened by one cell on each side (~30 m from the centerline)
+    RLAT, RLNG = 0.00018, 0.00025
+    rr, rc = int(round((NORTH - SOUTH) / RLAT)), int(round((EAST - WEST) / RLNG))
+    mask = rz(((g, 1) for g in roads), out_shape=(rr, rc), transform=from_origin(WEST, NORTH, RLNG, RLAT),
+              fill=0, all_touched=True, dtype='uint8').astype(bool)
+    del roads
+    mask = binary_dilation(mask, iterations=1)
+    log(f'road mask {rr}x{rc}, {mask.mean() * 100:.1f}% of cells near a road')
+
+    def near_road(lng, lat):
+        r = int((NORTH - lat) / RLAT)
+        c = int((lng - WEST) / RLNG)
+        return 0 <= r < rr and 0 <= c < rc and mask[r, c]
+
+    def length_m(cs):
+        tot = 0.0
+        for (x1, y1), (x2, y2) in zip(cs, cs[1:]):
+            tot += math.hypot((x2 - x1) * 111320 * math.cos(math.radians(y1)), (y2 - y1) * 110540)
+        return tot
+
+    def samples(cs, step=12.0):
+        """Points every ~step metres along the line."""
+        pts = [cs[0]]
+        for (x1, y1), (x2, y2) in zip(cs, cs[1:]):
+            d = math.hypot((x2 - x1) * 111320 * math.cos(math.radians(y1)), (y2 - y1) * 110540)
+            n = max(1, int(d // step))
+            for i in range(1, n + 1):
+                pts.append((x1 + (x2 - x1) * i / n, y1 + (y2 - y1) * i / n))
+        return pts
+
+    SIDEWALK = {'sidewalk', 'crossing', 'access_aisle', 'traffic_island'}
+    kept, dropped = [], {'sidewalk': 0, 'along_road': 0, 'private': 0, 'short': 0}
+    for p, cs in trails_raw:
+        if p.get('access') in ('private', 'no') or p.get('foot') in ('private', 'no'):
+            dropped['private'] += 1
+            continue
+        if p.get('footway') in SIDEWALK or p.get('path') in SIDEWALK or p.get('sidewalk') or p.get('indoor') == 'yes':
+            dropped['sidewalk'] += 1
+            continue
+        if length_m(cs) < 40:
+            dropped['short'] += 1
+            continue
+        pts = samples(cs)
+        near = sum(1 for x, y in pts if near_road(x, y)) / len(pts)
+        if near >= 0.4:
+            dropped['along_road'] += 1
+            continue
+        kept.append((p, cs))
+    log(f'trails kept {len(kept)}, dropped {dropped}')
+
+    # trail proximity grid (~250 m cells, widened one cell) for picking trailhead parking
+    TLAT, TLNG = 0.0025, 0.0035
+    tr_, tc_ = int(round((NORTH - SOUTH) / TLAT)) + 1, int(round((EAST - WEST) / TLNG)) + 1
+    tgrid = np.zeros((tr_, tc_), dtype=bool)
+    for _, cs in kept:
+        for x, y in cs:
+            r, c = int((NORTH - y) / TLAT), int((x - WEST) / TLNG)
+            if 0 <= r < tr_ and 0 <= c < tc_:
+                tgrid[r, c] = True
+    tgrid = binary_dilation(tgrid, iterations=1)
+
+    tiles = {}
+    BAD_PARKING = {'street_side', 'lane', 'underground', 'multi-storey', 'rooftop', 'garage_boxes', 'carports', 'sheds'}
+    n_pk = 0
+    for p, g in parking_raw:
+        if p.get('access') in ('private', 'customers', 'no', 'delivery') or p.get('parking') in BAD_PARKING:
+            continue
+        if g.get('type') == 'Point':
+            lng, lat = g['coordinates']
+        else:
+            cs = g.get('coordinates')
+            while cs and isinstance(cs[0][0], list):
+                cs = cs[0]
+            if not cs:
+                continue
+            lng = sum(c[0] for c in cs) / len(cs)
+            lat = sum(c[1] for c in cs) / len(cs)
+        r, c = int((NORTH - lat) / TLAT), int((lng - WEST) / TLNG)
+        if not (0 <= r < tr_ and 0 <= c < tc_ and tgrid[r, c]):
+            continue
+        key = (int((lat - SOUTH) // TRAIL_TILE), int((lng - WEST) // TRAIL_TILE))
+        tiles.setdefault(key, {'t': [], 'p': []})['p'].append([round(lat, 5), round(lng, 5), p.get('name', ''), p.get('fee', '')])
+        n_pk += 1
+
+    for p, cs in kept:
+        simp = [cs[0]]
+        for c in cs[1:-1]:
+            if abs(c[0] - simp[-1][0]) + abs(c[1] - simp[-1][1]) > 0.0001:
+                simp.append(c)
+        simp.append(cs[-1])
+        mid = simp[len(simp) // 2]
+        key = (int((mid[1] - SOUTH) // TRAIL_TILE), int((mid[0] - WEST) // TRAIL_TILE))
+        tiles.setdefault(key, {'t': [], 'p': []})['t'].append(
+            [p.get('highway', ''), p.get('name', ''), [[round(c[1], 5), round(c[0], 5)] for c in simp]])
+
     total = 0
     for (i, j), v in tiles.items():
         if not (0 <= i < round((NORTH - SOUTH) / TRAIL_TILE) and 0 <= j < round((EAST - WEST) / TRAIL_TILE)):
             continue
-        fn = f'{out_dir}/{i}_{j}.json'
         data = json.dumps(v, separators=(',', ':'))
         total += len(data)
-        with open(fn, 'w') as f:
+        with open(f'{out_dir}/{i}_{j}.json', 'w') as f:
             f.write(data)
     with open(f'{out_dir}/meta.json', 'w') as f:
         json.dump({'south': SOUTH, 'west': WEST, 'size': TRAIL_TILE, 'built': time.strftime('%Y-%m-%d')}, f)
-    log(f'trails {n_tr}, parking {n_pk}, {len(tiles)} tiles, {total / 1e6:.1f} MB')
+    log(f'trails {len(kept)}, trailhead parking {n_pk}, {len(tiles)} tiles, {total / 1e6:.1f} MB')
 
 
 # ---------------------------------------------------------------- write tiles

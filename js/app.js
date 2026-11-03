@@ -59,6 +59,10 @@ map.createPane('lands').style.zIndex = 400;
 map.createPane('scan').style.zIndex = 420;
 map.createPane('trails').style.zIndex = 430;
 map.createPane('trails').style.pointerEvents = 'none';
+map.createPane('parking').style.zIndex = 440;
+// canvas renderers: thousands of lines/markers stay fast (DOM markers were crashing phones)
+const trailRenderer = L.canvas({ pane: 'trails', padding: 0.3 });
+const parkRenderer = L.canvas({ pane: 'parking', padding: 0.3, tolerance: 6 });
 
 const landLayer = L.geoJSON(null, { pane: 'lands', style: landStyle, interactive: false }).addTo(map);
 const scanLayer = L.layerGroup().addTo(map);
@@ -100,6 +104,8 @@ function sameSet(a, b) { return a.size === b.size && [...a].every((x) => b.has(x
 function renderChips() {
   const ins = inSeasonSet();
   const inOn = ins.size > 0 && sameSet(ins, state.species);
+  const total = Object.keys(SPECIES).length;
+  $('#speciesBtn').innerHTML = `<span class="pick-ico">🍄</span>${inOn ? `In season (${state.species.size})` : state.species.size === total ? 'All mushrooms' : state.species.size === 1 ? SPECIES[[...state.species][0]].name : `${state.species.size} of ${total} mushrooms`} <span class="caret">▾</span>`;
   $('#speciesChips').innerHTML = `<button class="chip special" data-k="__season" aria-pressed="${inOn}" title="Select only what's in season now">In season</button>` +
     `<button class="chip special" data-k="__all" aria-pressed="${state.species.size === Object.keys(SPECIES).length}">All</button>` +
     Object.entries(SPECIES)
@@ -130,6 +136,17 @@ $('#speciesChips').onclick = (e) => {
   speciesChanged();
 };
 renderChips();
+function toggleSpeciesPop(open) {
+  const pop = $('#speciesPop');
+  const show = open ?? pop.hidden;
+  pop.hidden = !show;
+  $('#speciesBtn').setAttribute('aria-expanded', String(show));
+}
+$('#speciesBtn').onclick = (e) => { e.stopPropagation(); toggleSpeciesPop(); };
+$('#speciesDone').onclick = () => toggleSpeciesPop(false);
+document.addEventListener('click', (e) => {
+  if (!$('#speciesPop').hidden && !e.target.closest('#speciesPop') && !e.target.closest('#speciesBtn')) toggleSpeciesPop(false);
+});
 
 function renderMode() {
   document.querySelectorAll('#modeSeg button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === state.mode)));
@@ -342,16 +359,27 @@ async function refreshTrails() {
     }));
     const { trails, parking } = await trailCache.get(key);
     if (seq !== trailSeq) return;
+    const view = map.getBounds().pad(0.3);
     for (const t of trails) {
-      L.polyline(t.coords, { pane: 'trails', color: '#6b4226', weight: t.kind === 'track' ? 2 : 1.6, opacity: 0.85, dashArray: t.kind === 'track' ? null : '5 4', interactive: false }).addTo(trailLayer);
+      if (!t.coords.some((c) => view.contains(c))) continue;
+      L.polyline(t.coords, { renderer: trailRenderer, color: '#6b4226', weight: t.kind === 'track' ? 2.2 : 1.8, opacity: 0.85, dashArray: t.kind === 'track' ? null : '5 4', interactive: false }).addTo(trailLayer);
     }
-    for (const p of parking) {
-      L.marker([p.lat, p.lng], {
-        icon: L.divIcon({ className: 'pk', html: 'P', iconSize: [20, 20] }),
-        title: p.name || 'Parking',
-        keyboard: false,
-      }).bindPopup(`<b>${esc(p.name || 'Parking')}</b>${p.fee === 'yes' ? '<br>Fee or permit may be required' : ''}<br><a href="https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}" target="_blank" rel="noopener">Directions</a>`)
-        .addTo(trailLayer);
+    // parking: only up close, nearest first, capped, and merged when lots sit next to each other
+    if (map.getZoom() >= 14) {
+      const c = map.getCenter();
+      const inView = parking.filter((p) => view.contains([p.lat, p.lng]))
+        .sort((a, b2) => ((a.lat - c.lat) ** 2 + (a.lng - c.lng) ** 2) - ((b2.lat - c.lat) ** 2 + (b2.lng - c.lng) ** 2));
+      const shown = [];
+      for (const p of inView) {
+        if (shown.some((q) => Math.abs(q.lat - p.lat) < 0.0005 && Math.abs(q.lng - p.lng) < 0.0007)) continue;
+        shown.push(p);
+        if (shown.length >= 80) break;
+      }
+      for (const p of shown) {
+        L.circleMarker([p.lat, p.lng], { renderer: parkRenderer, radius: 6, color: '#fff', weight: 2, fillColor: '#1f6fb2', fillOpacity: 1 })
+          .bindPopup(`<b>${esc(p.name || 'Parking')}</b>${p.fee === 'yes' ? '<br>Fee or permit may be required' : ''}<br><a href="https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}" target="_blank" rel="noopener">Directions</a>`)
+          .addTo(trailLayer);
+      }
     }
   } catch (e) {
     /* Overpass can be busy; skip quietly */
@@ -833,7 +861,7 @@ function renderLegend() {
     <div class="ramp"></div><div class="ramp-l"><span>Poor</span><span>Fair</span><span>Good</span><span>Prime</span></div>
     ${Object.values(STATUS_STYLE).map((s) => `<div class="lg-item"><span class="sw" style="--c:${s.color}"></span>${s.label}</div>`).join('')}
     <div class="lg-item"><span class="trail-sw"></span>Trail (zoom in)</div>
-    <div class="lg-item"><span class="pk lg">P</span>Parking</div>
+    <div class="lg-item"><span class="pk-dot"></span>Trailhead parking (zoom in)</div>
     <div class="lg-item"><span class="star lg">★</span>My saved spot</div>
     ${[...state.species].map((k) => `<div class="lg-item"><span class="dot" style="--c:${SPECIES[k].color}"></span>${SPECIES[k].name} sighting</div>`).join('')}
     ${fo ? `<div class="lg-item"><span class="sw" style="--c:${fo.color}"></span>${fo.name}</div>` : ''}

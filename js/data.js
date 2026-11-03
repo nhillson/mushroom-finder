@@ -335,7 +335,7 @@ const OVERPASS = ['https://maps.mail.ru/osm/tools/overpass/api/interpreter', 'ht
 let overpassOk = 0; // remember the last mirror that answered
 export function trailsUrl(s, w, n, e, mirror = overpassOk) {
   const bb = `${s.toFixed(3)},${w.toFixed(3)},${n.toFixed(3)},${e.toFixed(3)}`;
-  const q = `[out:json][timeout:25];(way["highway"~"^(path|footway|track|bridleway)$"](${bb});nwr["amenity"="parking"]["access"!~"private|customers"](${bb}););out geom tags;`;
+  const q = `[out:json][timeout:25];(way["highway"~"^(path|footway|track|bridleway)$"]["footway"!~"sidewalk|crossing"]["access"!~"private|no"](${bb});nwr["amenity"="parking"]["access"!~"private|customers"](${bb}););out geom tags;`;
   return OVERPASS[mirror] + '?data=' + encodeURIComponent(q);
 }
 export async function trailsIn(s, w, n, e) {

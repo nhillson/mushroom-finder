@@ -22,7 +22,7 @@
       <h1>Mushroom Finder</h1>
     </div>
     <div class="controls">
-      <div class="chips" id="speciesChips" role="group" aria-label="Mushrooms to look for"></div>
+      <button class="pick-btn" id="speciesBtn" type="button" aria-expanded="false" aria-controls="speciesPop"></button>
       <div class="seg" id="modeSeg" role="group" aria-label="Look or harvest">
         <button data-mode="look" aria-pressed="true">Look</button>
         <button data-mode="harvest" aria-pressed="false">Harvest</button>
@@ -30,6 +30,14 @@
       <button class="icon-btn" id="aboutBtn" aria-label="About and data sources" title="About">?</button>
     </div>
   </header>
+
+  <div class="species-pop" id="speciesPop" hidden>
+    <div class="sp-pop-head">
+      <h3>Mushrooms to look for</h3>
+      <button class="btn primary" id="speciesDone" type="button">Done</button>
+    </div>
+    <div class="chips wrap" id="speciesChips" role="group" aria-label="Mushrooms to look for"></div>
+  </div>
 
   <main class="layout">
     <div id="map" aria-label="Map"></div>
