@@ -618,7 +618,7 @@ function openMineDialog(kind, lat, lng, saved, land) {
   const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
   const opts = Object.entries(SPECIES).map(([k, s]) => `<option value="${k}">${s.name}</option>`).join('');
   const defaultName = saved?.name || land?.props?.Unit_Nm || '';
-  dlg.innerHTML = `<form method="dialog" id="mineForm">
+  dlg.innerHTML = `<form id="mineForm">
     <h2>${kind === 'save' ? (saved ? 'Edit spot' : 'Save this spot') : 'Log a find'}</h2>
     ${kind === 'find' && !saved ? `<label>Spot name<input name="name" value="${esc(defaultName)}" placeholder="e.g. Oak ridge by the creek" required></label>` : ''}
     ${kind === 'save' ? `<label>Name<input name="name" value="${esc(defaultName)}" placeholder="e.g. Oak ridge by the creek" required></label>
@@ -628,16 +628,18 @@ function openMineDialog(kind, lat, lng, saved, land) {
       <label>How much (optional)<input name="qty" placeholder="e.g. 2 lb, a few, just looked"></label>
       <label>Notes (optional)<textarea name="note" rows="2" placeholder="Host tree, condition, ID notes"></textarea></label>` : ''}
     <p class="muted">Saved on this device only.</p>
-    <div class="actions"><button class="btn primary" value="ok">Save</button><button class="btn" value="cancel" formnovalidate>Cancel</button></div>
+    <div class="actions"><button class="btn primary" type="submit">Save</button><button class="btn" type="button" id="mineCancel">Cancel</button></div>
   </form>`;
   if (kind === 'find') {
     const sel = dlg.querySelector('select[name=k]');
     const first = [...state.species][0];
     if (first) sel.value = first;
   }
-  dlg.onclose = () => {
-    if (dlg.returnValue !== 'ok') return;
-    const fd = new FormData(dlg.querySelector('form'));
+  dlg.querySelector('#mineCancel').onclick = () => dlg.close();
+  dlg.querySelector('form').onsubmit = (ev) => {
+    ev.preventDefault();
+    dlg.close();
+    const fd = new FormData(ev.target);
     let spot = saved;
     if (kind === 'save' || !spot) {
       spot = Mine.saveSpot({ lat, lng, name: fd.get('name'), note: kind === 'save' ? fd.get('note') : '' });
