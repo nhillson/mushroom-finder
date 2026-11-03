@@ -86,6 +86,12 @@ const RULES = [
     note: 'Many county, regional and city parks prohibit removing plants or fungi. Enjoy looking; check the park\'s ordinance before picking.',
   },
   {
+    test: (d) => /private park|private recreation/.test(d),
+    status: 'closed',
+    label: 'Private park',
+    note: 'Privately owned (golf course, club, camp). Ask the owner before entering.',
+  },
+  {
     test: (d, m) => /private|non-governmental|ngo|land trust|conservancy|easement/.test(d + ' ' + m),
     status: 'look',
     label: 'Private conservation land',
@@ -93,7 +99,35 @@ const RULES = [
   },
 ];
 
-export function classifyLand(props) {
+// Approximate MN–WI–IA border for the area this app covers (lat, lng from north to south).
+const WI_BORDER = [
+  [46.75, -92.10], [46.42, -92.29], [45.73, -92.29], [45.73, -92.88], [45.4, -92.67], [45.18, -92.76],
+  [44.95, -92.76], [44.75, -92.80], [44.6, -92.62], [44.45, -92.27], [44.36, -91.95], [44.1, -91.71],
+  [43.85, -91.27], [43.5, -91.22],
+];
+export function stateAt(lat, lng) {
+  if (lat < 43.5) return 'IA';
+  for (let i = 0; i < WI_BORDER.length - 1; i++) {
+    const [la1, ln1] = WI_BORDER[i], [la2, ln2] = WI_BORDER[i + 1];
+    if (lat <= la1 && lat >= la2) {
+      const edge = la1 === la2 ? Math.min(ln1, ln2) : ln1 + ((lat - la1) / (la2 - la1)) * (ln2 - ln1);
+      return lng > edge ? 'WI' : 'MN';
+    }
+  }
+  return 'MN';
+}
+
+export function classifyLand(props, lat, lng) {
+  const out = classifyMN(props);
+  const st = lat != null ? stateAt(lat, lng) : 'MN';
+  if (st !== 'MN' && props && out.status === 'harvest') {
+    const name = st === 'WI' ? 'Wisconsin' : 'Iowa';
+    return { ...out, status: 'check', note: `This is in ${name}. The Minnesota rules in this app don't apply here; check ${name}'s rules before picking.`, link: undefined };
+  }
+  return out;
+}
+
+function classifyMN(props) {
   if (!props) {
     return {
       status: 'closed',

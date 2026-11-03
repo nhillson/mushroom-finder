@@ -54,8 +54,14 @@ const obsLayer = L.layerGroup().addTo(map);
 let forestOverlay = null;
 let spotMarker = null;
 
+function firstCoord(g) {
+  let c = g && g.coordinates;
+  while (Array.isArray(c) && Array.isArray(c[0])) c = c[0];
+  return c || [null, null];
+}
 function landStyle(f) {
-  const st = classifyLand(f.properties).status;
+  const [lng0, lat0] = firstCoord(f.geometry);
+  const st = classifyLand(f.properties, lat0, lng0).status;
   const c = STATUS_STYLE[st].color;
   return { color: c, weight: 1.5, fillColor: c, fillOpacity: st === 'closed' ? 0.12 : 0.16, dashArray: st === 'check' ? '4 3' : null };
 }
@@ -234,13 +240,14 @@ async function refreshObservations() {
 }
 
 // ---------- spot details ----------
-function bestLand(attrsList) {
+const RANK = { closed: 0, look: 1, check: 2, harvest: 3 };
+function bestLand(attrsList, lat, lng) {
   if (!attrsList || !attrsList.length) return { cls: classifyLand(null), props: null };
-  const rank = { closed: 0, look: 1, check: 2, harvest: 3 };
+  const rank = RANK;
   // most restrictive wins (e.g. county land inside a state forest boundary)
   let best = null;
   for (const p of attrsList) {
-    const c = classifyLand(p);
+    const c = classifyLand(p, lat, lng);
     if (!best || rank[c.status] < rank[best.cls.status]) best = { cls: c, props: p };
   }
   return best;
@@ -266,7 +273,7 @@ async function showSpot(lat, lng, pan = true) {
 
   const cover = coverR.status === 'fulfilled' ? coverR.value : null;
   const trees = treesR.status === 'fulfilled' ? treesR.value[0] : null;
-  const land = landR.status === 'fulfilled' ? bestLand(landR.value) : null;
+  const land = landR.status === 'fulfilled' ? bestLand(landR.value, lat, lng) : null;
   const w = wR.status === 'fulfilled' ? wR.value : null;
 
   const st = land ? STATUS_STYLE[land.cls.status] : null;
@@ -369,8 +376,15 @@ async function scanView() {
       let bi = 0, bd = Infinity;
       wlocs.forEach((wl, j) => { const d = (wl[0] - c.lat) ** 2 + (wl[1] - c.lng) ** 2; if (d < bd) { bd = d; bi = j; } });
       c.w = wx[bi];
-      const hits = featuresAt([c.lng, c.lat], lands);
-      c.land = bestLand(hits.map((h) => h.properties));
+      // check a 3x3 set of points so small parks inside a cell still count; keep the most usable
+      c.land = null;
+      for (let a = -1; a <= 1; a++) for (let bb = -1; bb <= 1; bb++) {
+        const la = c.lat + (a * dy) / 3, ln = c.lng + (bb * dx) / 3;
+        const hits = featuresAt([ln, la], lands);
+        const l = bestLand(hits.map((h) => h.properties), la, ln);
+        if (!c.land || accessFactor(l.cls.status, state.mode) > accessFactor(c.land.cls.status, state.mode) ||
+            (accessFactor(l.cls.status, state.mode) === accessFactor(c.land.cls.status, state.mode) && RANK[l.cls.status] > RANK[c.land.cls.status])) c.land = l;
+      }
     });
     state.scan = { cells, at: new Date() };
     redrawScan();
