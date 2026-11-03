@@ -2,7 +2,7 @@ import { CFG, NLCD, TREES, OVERLAYS } from './config.js';
 import { SPECIES } from './species.js';
 import { classifyLand, accessFactor, STATUS_STYLE, RULES_CHECKED } from './landrules.js';
 import * as D from './data.js';
-import { timing, habitat, label, scoreColor, featuresAt } from './score.js';
+import { timing, habitat, combine, label, scoreColor, featuresAt } from './score.js';
 
 const L = window.L;
 const $ = (s) => document.querySelector(s);
@@ -138,7 +138,7 @@ function weatherBlock(w) {
       <div class="wx"><b>${isFinite(w.soilT) ? Math.round(w.soilT) + '°' : '—'}</b><span>soil temp (2″)</span></div>
     </div>
     <div class="rainbars" aria-label="Daily rain, past 14 days and next 7">${bars}</div>
-    <div class="rainaxis"><span>2 weeks ago</span><span>today</span><span>+7 days: ${w.rainNext7.toFixed(2)}″</span></div>`;
+    <div class="rainaxis"><span>2 weeks ago</span><span class="today-lbl" style="left:${((days.findIndex((d) => d.today) + 0.5) / days.length) * 100}%">today</span><span>next 7 days: ${w.rainNext7.toFixed(2)}″</span></div>`;
 }
 
 let condSeq = 0;
@@ -292,7 +292,7 @@ async function showSpot(lat, lng, pan = true) {
     const s = SPECIES[k];
     const h = habitat(k, { cover, trees });
     const t = w ? timing(k, w) : { value: 0.5, notes: ['Weather unavailable.'] };
-    const overall = h.value * t.value * acc;
+    const overall = combine(h.value, t.value, acc);
     return `<details class="sp-detail" style="--c:${s.color}">
       <summary><span class="sp-name"><span class="dot"></span>${s.name}</span><span class="pill ${label(overall)}">${label(overall)}</span></summary>
       <dl class="kv">
@@ -390,7 +390,7 @@ function redrawScan() {
   for (const c of state.scan.cells) {
     let best = 0, bestK = null;
     for (const k of state.species) {
-      const v = habitat(k, c).value * timing(k, c.w).value * accessFactor(c.land.cls.status, state.mode);
+      const v = combine(habitat(k, c).value, timing(k, c.w).value, accessFactor(c.land.cls.status, state.mode));
       if (v > best) { best = v; bestK = k; }
     }
     c.score = best;

@@ -65,7 +65,7 @@ export function habitat(key, { cover, trees }) {
   if (cover) {
     forest = 0;
     for (const [k, w] of Object.entries(sp.lc)) forest += w * (cover[k] || 0);
-    forest = clamp(forest / 0.6); // saturates once ~60% of the area is good forest
+    forest = clamp(forest / 0.45); // saturates once ~45% of the area is good forest
   }
   let host = 0;
   const treeHits = [];
@@ -81,6 +81,12 @@ export function habitat(key, { cover, trees }) {
   host = clamp(host / sp.hostScale);
   const h = forest * (sp.hostFloor + (1 - sp.hostFloor) * host);
   return { value: clamp(h), forest, host, treeHits };
+}
+
+// Overall: geometric mean of habitat and timing, gated by access.
+// (Multiplying raw factors made everything look poor.)
+export function combine(h, t, access) {
+  return Math.sqrt(Math.max(0, h) * Math.max(0, t)) * access;
 }
 
 export function label(v) {

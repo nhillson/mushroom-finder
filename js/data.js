@@ -34,9 +34,13 @@ export async function treeBasalAreaAt(points) {
     interpolation: 'RSP_NearestNeighbor',
     f: 'json',
   };
-  const [names, j] = await Promise.all([treeRasterNames(), getJSON(CFG.treeSpecies + '/getSamples', form(params))]);
+  const names = await treeRasterNames();
   const byRaster = {};
   for (const [k, t] of Object.entries(TREES)) byRaster[t.raster] = k;
+  // only sample the rasters we track (about twice as fast as sampling all 24)
+  const lock = Object.entries(names).filter(([, n]) => byRaster[n]).map(([id]) => Number(id));
+  if (lock.length) params.mosaicRule = { mosaicMethod: 'esriMosaicLockRaster', lockRasterIds: lock };
+  const j = await getJSON(CFG.treeSpecies + '/getSamples', form(params));
   const out = points.map(() => ({}));
   for (const s of j.samples || []) {
     const key = byRaster[names[s.rasterId]];
