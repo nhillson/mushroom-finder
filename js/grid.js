@@ -22,7 +22,7 @@ async function gunzip(buf) {
 function loadTile(m, ty, tx) {
   const key = ty + '_' + tx;
   if (!tiles.has(key)) {
-    tiles.set(key, fetch(`data/grid/${key}.bin.gz`)
+    tiles.set(key, fetch(`data/grid/${key}.bin.gz?v=${m.version || m.built}`)
       .then((r) => (r.ok ? r.arrayBuffer() : null))
       .then((b) => (b ? gunzip(b) : null))
       .catch(() => null));
@@ -94,7 +94,7 @@ export async function gridTileUrls(south, west, north, east) {
   const c0 = Math.max(0, Math.floor((west - m.west) / m.dlng / T));
   const c1 = Math.min(Math.ceil(m.cols / T) - 1, Math.floor((east - m.west) / m.dlng / T));
   const urls = ['data/grid/meta.json', 'data/model.json'];
-  for (let ty = r0; ty <= r1; ty++) for (let tx = c0; tx <= c1; tx++) urls.push(`data/grid/${ty}_${tx}.bin.gz`);
+  for (let ty = r0; ty <= r1; ty++) for (let tx = c0; tx <= c1; tx++) urls.push(`data/grid/${ty}_${tx}.bin.gz?v=${m.version || m.built}`);
   return urls;
 }
 

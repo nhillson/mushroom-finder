@@ -387,7 +387,7 @@ export async function trailTileUrls(s, w, n, e) {
   if (!m) return [];
   const urls = ['data/trails/meta.json'];
   for (let i = Math.floor((s - m.south) / m.size); i <= Math.floor((n - m.south) / m.size); i++)
-    for (let j = Math.floor((w - m.west) / m.size); j <= Math.floor((e - m.west) / m.size); j++) urls.push(`data/trails/${i}_${j}.json`);
+    for (let j = Math.floor((w - m.west) / m.size); j <= Math.floor((e - m.west) / m.size); j++) urls.push(`data/trails/${i}_${j}.json?v=${m.version || m.built}`);
   return urls;
 }
 // Returns { trails, parking } or null when the precomputed tiles don't exist

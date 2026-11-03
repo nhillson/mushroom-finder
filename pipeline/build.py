@@ -729,7 +729,7 @@ def trails():
         with open(f'{out_dir}/{i}_{j}.json', 'w') as f:
             f.write(data)
     with open(f'{out_dir}/meta.json', 'w') as f:
-        json.dump({'south': SOUTH, 'west': WEST, 'size': TRAIL_TILE, 'built': time.strftime('%Y-%m-%d')}, f)
+        json.dump({'south': SOUTH, 'west': WEST, 'size': TRAIL_TILE, 'built': time.strftime('%Y-%m-%d'), 'version': int(time.time())}, f)
     log(f'trails {len(kept)}, trailhead parking {n_pk}, {len(tiles)} tiles, {total / 1e6:.1f} MB')
 
 
@@ -764,7 +764,7 @@ def write_tiles():
                 f.write(data)
     meta = {'west': WEST, 'south': SOUTH, 'east': EAST, 'north': NORTH, 'dlat': DLAT, 'dlng': DLNG,
             'rows': ROWS, 'cols': COLS, 'tile': TILE, 'bands': names, 'scales': SCALES,
-            'built': time.strftime('%Y-%m-%d')}
+            'built': time.strftime('%Y-%m-%d'), 'version': int(time.time())}
     with open('data/grid/meta.json', 'w') as f:
         json.dump(meta, f, indent=1)
     log(f'tiles written, {total / 1e6:.1f} MB total, bands: {names}')

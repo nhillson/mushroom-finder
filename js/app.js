@@ -351,7 +351,7 @@ async function refreshTrails() {
   const key = [s, w, n, e].map((v) => v.toFixed(2)).join(',');
   const seq = ++trailSeq;
   try {
-    if (!trailCache.has(key)) trailCache.set(key, D.trailsFromTiles(s, w, n, e).then((t) => t || D.trailsIn(s, w, n, e)).catch(async (err) => {
+    if (!trailCache.has(key)) trailCache.set(key, D.trailsFromTiles(s, w, n, e).then((t) => t || { trails: [], parking: [] }).catch(async (err) => {
       trailCache.delete(key);
       const off = await offlineFallback('trails');
       if (off) return D.parseTrails(off);

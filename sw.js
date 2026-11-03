@@ -2,10 +2,10 @@
 // - App files: cached on install, refreshed in the background.
 // - Basemap tiles and habitat grid tiles: cache first.
 // - Live data (weather, public lands, sightings, trails): network first, cached copy when offline.
-const VERSION = 'v3';
+const VERSION = 'v4';
 const SHELL = `mf-shell-${VERSION}`;
 const TILES = 'mf-tiles';
-const DATA = 'mf-data';
+const DATA = 'mf-data-v2';
 const API = 'mf-api';
 
 const SHELL_FILES = [
@@ -23,7 +23,8 @@ self.addEventListener('install', (e) => {
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k.startsWith('mf-shell-') && k !== SHELL).map((k) => caches.delete(k))))
+      // old app versions, and data cached before tile URLs carried a build version
+      .then((keys) => Promise.all(keys.filter((k) => (k.startsWith('mf-shell-') && k !== SHELL) || k === 'mf-data').map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
