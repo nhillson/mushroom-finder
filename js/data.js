@@ -330,13 +330,30 @@ export async function recentNear(lat, lng, radiusKm, taxonIds, days = 14) {
 }
 
 // ---------- Trails and parking (OpenStreetMap via Overpass) ----------
-export function trailsUrl(s, w, n, e) {
+// Overpass servers are often busy; try mirrors in turn
+const OVERPASS = ['https://overpass-api.de/api/interpreter', 'https://overpass.private.coffee/api/interpreter', 'https://overpass.kumi.systems/api/interpreter'];
+let overpassOk = 0; // remember the last mirror that answered
+export function trailsUrl(s, w, n, e, mirror = overpassOk) {
   const bb = `${s.toFixed(3)},${w.toFixed(3)},${n.toFixed(3)},${e.toFixed(3)}`;
   const q = `[out:json][timeout:25];(way["highway"~"^(path|footway|track|bridleway)$"](${bb});nwr["amenity"="parking"]["access"!~"private|customers"](${bb}););out geom tags;`;
-  return 'https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(q);
+  return OVERPASS[mirror] + '?data=' + encodeURIComponent(q);
 }
 export async function trailsIn(s, w, n, e) {
-  return parseTrails(await getJSON(trailsUrl(s, w, n, e)));
+  let lastErr;
+  for (let k = 0; k < OVERPASS.length; k++) {
+    const i = (overpassOk + k) % OVERPASS.length;
+    try {
+      const ctl = new AbortController();
+      const t = setTimeout(() => ctl.abort(), 20000);
+      const j = await getJSON(trailsUrl(s, w, n, e, i), { signal: ctl.signal });
+      clearTimeout(t);
+      overpassOk = i;
+      return parseTrails(j);
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+  throw lastErr;
 }
 export function parseTrails(j) {
   const trails = [], parking = [];

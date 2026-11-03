@@ -30,7 +30,7 @@ self.addEventListener('activate', (e) => {
 
 const isTile = (u) => /basemap\.nationalmap\.gov|tile\.openstreetmap\.org/.test(u.host);
 const isGrid = (u) => u.origin === self.location.origin && u.pathname.includes('/data/');
-const isApi = (u) => /open-meteo\.com|arcgis\.com|inaturalist\.org|overpass-api\.de|mrlc\.gov|geoplatform\.gov/.test(u.host);
+const isApi = (u) => /open-meteo\.com|arcgis\.com|inaturalist\.org|overpass-api\.de|overpass\.private\.coffee|overpass\.kumi\.systems|mrlc\.gov|geoplatform\.gov/.test(u.host);
 
 async function cacheFirst(cacheName, req) {
   const c = await caches.open(cacheName);
