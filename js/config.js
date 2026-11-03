@@ -76,6 +76,7 @@ export const TREES = {
   American_elm: { raster: 's972', name: 'American elm' },
   sugar_maple: { raster: 's318', name: 'Sugar maple' },
   red_maple: { raster: 's316', name: 'Red maple' },
+  balsam_fir: { raster: 's12', name: 'Balsam fir' },
 };
 
 // Optional map overlays

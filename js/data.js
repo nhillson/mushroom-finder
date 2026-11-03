@@ -123,7 +123,13 @@ export function coverFractions(classes) {
   const f = (code) => (cnt[code] || 0) / n;
   let top = 0, topN = -1;
   for (const [c, k] of Object.entries(cnt)) if (k > topN && Number(c)) { topN = k; top = Number(c); }
-  return { decid: f(41), conifer: f(42), mixed: f(43), wetwood: f(90), forest: f(41) + f(42) + f(43) + f(90), dominant: top };
+  return {
+    decid: f(41), conifer: f(42), mixed: f(43), wetwood: f(90),
+    grass: f(71), pasture: f(81), devopen: f(21), shrub: f(52),
+    forest: f(41) + f(42) + f(43) + f(90),
+    open: f(71) + f(81) + f(21) + f(52),
+    dominant: top,
+  };
 }
 
 // Land-cover fractions in a ~200 m box around one point

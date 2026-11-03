@@ -42,7 +42,17 @@ export function wetness(w) {
 export function timing(key, w, date = new Date()) {
   const sp = SPECIES[key];
   const season = seasonFactor(sp, date);
-  const temp = tempFit(sp, w.high7);
+  let temp = tempFit(sp, w.high7);
+  let soilNote = null;
+  if (sp.soil && isFinite(w.soilT)) {
+    const s = sp.soil, t = w.soilT;
+    let f = 1;
+    if (t < s.min || t > s.max) f = 0.05;
+    else if (t < s.idealLow) f = (t - s.min) / (s.idealLow - s.min);
+    else if (t > s.idealHigh) f = 1 - (t - s.idealHigh) / (s.max - s.idealHigh);
+    if (f < temp) temp = f;
+    if (f < 0.5) soilNote = `Soil is ${Math.round(t)}°F; they want about ${s.idealLow}–${s.idealHigh}°F.`;
+  }
   const wet = wetness(w);
   let t = season * (0.1 + 0.9 * temp * wet);
   const notes = [];
@@ -52,6 +62,7 @@ export function timing(key, w, date = new Date()) {
   }
   if (season === 0) notes.push('Out of season.');
   else if (season < 0.5) notes.push('Edge of the season.');
+  if (soilNote && season > 0) notes.push(soilNote);
   if (wet < 0.4) notes.push('Dry lately — fruiting slows until a soaking rain.');
   if (temp < 0.4 && season > 0) notes.push(w.high7 < sp.temp.idealLow ? 'Colder than ideal.' : 'Warmer than ideal.');
   return { value: clamp(t), season, temp, wet, notes };

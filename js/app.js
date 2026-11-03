@@ -122,9 +122,9 @@ async function weatherNear(lat, lng) {
 }
 
 function timingRows(w) {
-  return [...state.species].map((k) => {
+  const rows = [...state.species].map((k) => ({ k, t: timing(k, w) })).sort((a, b) => b.t.value - a.t.value);
+  return rows.map(({ k, t }) => {
     const s = SPECIES[k];
-    const t = timing(k, w);
     return `<div class="sp-row" style="--c:${s.color}">
       <div class="sp-name"><span class="dot"></span>${s.name}</div>
       <span class="pill ${label(t.value)}">${label(t.value)}</span>
@@ -291,16 +291,19 @@ async function showSpot(lat, lng, pan = true) {
   const forestHtml = `<dl class="kv">
       <dt>Land cover</dt><dd>${cover ? esc(NLCD[cover.dominant]?.[0] || 'Unknown') : '<span class="err">unavailable</span>'}</dd>
       ${cover ? `<dt>Forest nearby</dt><dd>${pct(cover.forest)} of the surrounding ~400 m${cover.forest > 0 ? ` (deciduous ${pct(cover.decid)}, mixed ${pct(cover.mixed)}, wooded wetland ${pct(cover.wetwood)}, evergreen ${pct(cover.conifer)})` : ''}</dd>` : ''}
+      ${cover && cover.open > 0.05 ? `<dt>Open ground</dt><dd>${pct(cover.open)} grass, pasture or park lawn</dd>` : ''}
       <dt>Host trees</dt><dd>${treeList.length ? treeList.map(([f, v]) => `${TREES[f].name} (${v.toFixed(1)} ft²/ac)`).join(', ') : trees ? 'None of the tracked species mapped here' : '<span class="err">unavailable</span>'}</dd>
     </dl>
     <p class="muted" style="margin:6px 0 0">Tree numbers are averages over 250 m cells, so even good oak woods show single digits. Red and bur oak aren't in the tree maps.</p>`;
 
   const acc = land ? accessFactor(land.cls.status, state.mode) : 0;
-  const spHtml = [...state.species].map((k) => {
-    const s = SPECIES[k];
+  const spRows = [...state.species].map((k) => {
     const h = habitat(k, { cover, trees });
     const t = w ? timing(k, w) : { value: 0.5, notes: ['Weather unavailable.'] };
-    const overall = combine(h.value, t.value, acc);
+    return { k, h, t, overall: combine(h.value, t.value, acc) };
+  }).sort((a, b) => b.overall - a.overall);
+  const spHtml = spRows.map(({ k, h, t, overall }) => {
+    const s = SPECIES[k];
     return `<details class="sp-detail" style="--c:${s.color}">
       <summary><span class="sp-name"><span class="dot"></span>${s.name}</span><span class="pill ${label(overall)}">${label(overall)}</span></summary>
       <dl class="kv">

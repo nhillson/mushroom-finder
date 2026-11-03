@@ -1,11 +1,13 @@
 # Mushroom Finder
 
-A map of promising places to look for **oysters**, **hen-of-the-woods** and **chicken-of-the-woods** within about two hours of the Twin Cities.
+A map of promising places to look for choice wild mushrooms within about two hours of the Twin Cities:
+
+morels, chanterelles, black trumpets, king boletes, lobster mushrooms, hedgehogs, hen-of-the-woods, chicken-of-the-woods, oysters, lion's mane and bear's head, cauliflower mushrooms, giant puffballs, shaggy manes, honey mushrooms and velvet foot.
 
 It combines, live in your browser:
 
 - **Land cover** — NLCD 2021 (30 m): how much deciduous, mixed and wooded-wetland forest is around
-- **Host trees** — USFS FIA Forest Atlas tree-species density (250 m): white oak, aspen, elm, sugar and red maple
+- **Host trees** — USFS FIA Forest Atlas tree-species density (250 m): white oak, aspen, elm, sugar and red maple, balsam fir
 - **Weather** — Open-Meteo: last 14 days of rain, last week's temperatures, soil moisture and temperature, 7-day forecast
 - **Public land** — PAD-US, translated into Minnesota picking rules (`js/landrules.js`)
 - **Sightings** — iNaturalist research-grade and needs-ID observations
@@ -33,7 +35,7 @@ Each grid cell or tapped spot gets three numbers, multiplied together:
 
 ## Known gaps
 
-- The tree maps don't include red or bur oak, so oak habitat is underestimated in places.
+- The tree maps don't include red or bur oak, pines, spruce, birch, ash, cottonwood or basswood, so those hosts are covered only through land cover (forest type) with a baseline score.
 - The MN DNR forest stand inventory would be a big upgrade on state land, but its server blocks browser requests. It would need a small proxy.
 - PAD-US doesn't cover every county tax-forfeit parcel. Unmapped land is treated as private.
 
