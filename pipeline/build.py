@@ -434,6 +434,7 @@ def disturbance_fire():
 INAT = 'https://api.inaturalist.org/v1'
 TAXA = {
     'oyster': [('Pleurotus', 'genus')], 'hen': [('Grifola frondosa', 'species')], 'chicken': [('Laetiporus', 'genus')],
+    'beefsteak': [('Fistulina hepatica', 'species')],
     'morel': [('Morchella', 'genus')], 'chanterelle': [('Cantharellus', 'genus')],
     'trumpet': [('Craterellus fallax', 'species'), ('Craterellus cornucopioides', 'species')],
     'bolete': [('Boletus edulis', 'species'), ('Boletus chippewaensis', 'species'), ('Boletus variipes', 'species')],

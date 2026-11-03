@@ -64,6 +64,24 @@ export const SPECIES = {
     freezeKill: 26,
   },
 
+  beefsteak: {
+    name: 'Beefsteak fungus',
+    latin: 'Fistulina hepatica',
+    color: '#8b1e2d',
+    inatTaxa: [{ q: 'Fistulina hepatica', rank: 'species' }],
+    hosts: 'Oaks: low on the trunk of living old oaks, at wounds and the root flare, or on oak stumps. A red, tongue-shaped shelf that oozes red juice when cut.',
+    season: 'Mid-July through September, after rain. Best picked young and moist.',
+    caution:
+      'Not the "beefsteak morel" (Gyromitra, a false morel), which is toxic. Beefsteak fungus grows on oak wood, never from the ground, and has a cream underside of tiny separate tubes. It tastes sour; soak or cook it gently.',
+    lc: { decid: 1.0, mixed: 0.6, wetwood: 0.2, conifer: 0.05 },
+    hostTrees: { white_oak: 1.0 },
+    hostScale: 4,
+    hostFloor: 0.35,
+    seasons: [{ start: '07-10', full: '08-01', fade: '09-20', end: '10-15', peak: 1.0 }],
+    temp: { minHigh: 55, idealLow: 64, idealHigh: 84, maxHigh: 93 },
+    freezeKill: 26,
+  },
+
   morel: {
     name: 'Morels',
     latin: 'Morchella spp.',
@@ -289,6 +307,8 @@ const GRID = {
   hen: { hosts: { oak: 0.6, bigoak: 1 }, hostScale: 42, floor: 0.1, dead: {}, terrain: {} },
   chicken: { hosts: { oak: 1, bigoak: 0.5, cottonwood: 0.3, willow: 0.3 }, hostScale: 49, floor: 0.15,
     dead: { dead_hw: 0.6, dmg_oak: 0.6 }, terrain: {} },
+  beefsteak: { hosts: { oak: 0.6, bigoak: 1 }, hostScale: 41, floor: 0.1,
+    dead: { dead_hw: 0.4 }, terrain: {} },
   morel: { hosts: { elm: 1, ash: 1, cottonwood: 0.8, aspen: 0.6 }, hostScale: 31, floor: 0.2,
     dead: { dead_elmash: 1.2, dmg_elmash: 1, burn: 1 }, terrain: { valley: 0.6, south: 0.3 } },
   chanterelle: { hosts: { oak: 1, aspen: 0.4, pine: 0.4, birch: 0.3 }, hostScale: 46, floor: 0.2, dead: {}, terrain: { slope: 0.3 } },

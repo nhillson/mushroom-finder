@@ -2,7 +2,7 @@
 
 A map of promising places to look for choice wild mushrooms within about two hours of the Twin Cities:
 
-morels, chanterelles, black trumpets, king boletes, lobster mushrooms, hedgehogs, hen-of-the-woods, chicken-of-the-woods, oysters, lion's mane and bear's head, cauliflower mushrooms, giant puffballs, shaggy manes, honey mushrooms and velvet foot.
+morels, chanterelles, black trumpets, king boletes, lobster mushrooms, hedgehogs, hen-of-the-woods, chicken-of-the-woods, beefsteak fungus, oysters, lion's mane and bear's head, cauliflower mushrooms, giant puffballs, shaggy manes, honey mushrooms and velvet foot.
 
 Live at https://nhillson.github.io/mushroom-finder/
 
