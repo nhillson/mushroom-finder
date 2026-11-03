@@ -383,7 +383,10 @@ async function scanView() {
         const hits = featuresAt([ln, la], lands);
         const l = bestLand(hits.map((h) => h.properties), la, ln);
         if (!c.land || accessFactor(l.cls.status, state.mode) > accessFactor(c.land.cls.status, state.mode) ||
-            (accessFactor(l.cls.status, state.mode) === accessFactor(c.land.cls.status, state.mode) && RANK[l.cls.status] > RANK[c.land.cls.status])) c.land = l;
+            (accessFactor(l.cls.status, state.mode) === accessFactor(c.land.cls.status, state.mode) && RANK[l.cls.status] > RANK[c.land.cls.status])) {
+          c.land = l;
+          c.pt = [la, ln]; // the point inside the cell that's on the best land
+        }
       }
     });
     state.scan = { cells, at: new Date() };
@@ -411,7 +414,7 @@ function redrawScan() {
     c.bestK = bestK;
     if (best < 0.04) continue;
     const r = L.rectangle([c.sw, c.ne], { pane: 'scan', stroke: false, fillColor: scoreColor(best), fillOpacity: 0.35 + best * 0.4 });
-    r.on('click', (ev) => { L.DomEvent.stopPropagation(ev); showSpot(c.lat, c.lng); });
+    r.on('click', (ev) => { L.DomEvent.stopPropagation(ev); showSpot(...(c.pt || [c.lat, c.lng])); });
     scanLayer.addLayer(r);
     top.push(c);
   }
@@ -426,8 +429,9 @@ function redrawScan() {
   el.querySelectorAll('a[data-i]').forEach((a) => (a.onclick = (e) => {
     e.preventDefault();
     const c = best[+a.dataset.i];
-    map.flyTo([c.lat, c.lng], Math.max(map.getZoom(), 13));
-    showSpot(c.lat, c.lng, false);
+    const [la, ln] = c.pt || [c.lat, c.lng];
+    map.flyTo([la, ln], Math.max(map.getZoom(), 13));
+    showSpot(la, ln, false);
   }));
   $('#scanClear').onclick = () => { state.scan = null; scanLayer.clearLayers(); el.hidden = true; };
 }
