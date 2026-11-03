@@ -83,7 +83,9 @@ export function timing(key, w, date = new Date(), recent = null) {
   }
   if (recent && recent.days <= 14) {
     // someone just found it nearby: it's fruiting, whatever the calendar says
-    const floor = recent.days <= 7 ? 0.75 : 0.6;
+    // closer and fresher sightings count for more (within ~10 mi and a week: strong evidence)
+    const near = recent.km <= 16 ? 1 : recent.km <= 35 ? 0.8 : 0.6;
+    const floor = (recent.days <= 7 ? 0.75 : 0.6) * near;
     if (t < floor) t = floor;
     if (season < 0.5) season = 0.5;
     notes.unshift(`Found ${recent.days === 0 ? 'today' : recent.days === 1 ? 'yesterday' : recent.days + ' days ago'} about ${Math.round(recent.km * 0.621)} mi away.`);
