@@ -22,7 +22,7 @@ sample props {"objectid": 902871, "damage_area_id": "{9cb5853d-cf00-4891-948b-6d
   dmg_oak: cells 108785
   dmg_aspen: cells 62493
   dmg_storm: cells 10225
-[ok] Insect & disease damage (USFS aerial survey) in 5s
+[ok] Insect & disease damage (USFS aerial survey) in 4s
 
 ===== Wildfire perimeters (NIFC) =====
 fire features 1520
@@ -34,12 +34,12 @@ sample props keys ['OBJECTID', 'poly_SourceOID', 'poly_IncidentName', 'poly_Feat
 raw: 223916 trail ways, 760214 roads, 73466 parking
 road mask 17222x18400, 10.1% of cells near a road
 trails kept 25176, dropped {'sidewalk': 144214, 'along_road': 18287, 'private': 5212, 'short': 31027}
-trails 25176, trailhead parking 26707, 1285 tiles, 10.7 MB
-[ok] Trails and parking from OpenStreetMap in 284s
+trails 25176, trailhead parking 11381, 1283 tiles, 10.2 MB
+[ok] Trails and parking from OpenStreetMap in 161s
 
 ===== Write grid tiles =====
 tiles written, 48.7 MB total, bands: ['oak', 'maple', 'aspen', 'cottonwood', 'birch', 'elm', 'ash', 'basswood', 'willow', 'pine', 'sprucefir', 'bigoak', 'dead_hw', 'dead_elmash', 'live_total', 'lc_decid', 'lc_conifer', 'lc_mixed', 'lc_wetwood', 'lc_grass', 'lc_pasture', 'lc_devopen', 'lc_shrub', 'lc_water', 'slope', 'northness', 'valley', 'dmg_elmash', 'dmg_oak', 'dmg_aspen', 'dmg_storm', 'burn']
-[ok] Write grid tiles in 53s
+[ok] Write grid tiles in 40s
 
 ===== iNaturalist: local seasons and habitat models =====
 model features ['oak', 'maple', 'aspen', 'cottonwood', 'birch', 'elm', 'ash', 'basswood', 'willow', 'pine', 'sprucefir', 'bigoak', 'dead_hw', 'dead_elmash', 'live_total', 'lc_decid', 'lc_conifer', 'lc_mixed', 'lc_wetwood', 'lc_grass', 'lc_pasture', 'lc_devopen', 'lc_shrub', 'lc_water', 'slope', 'valley', 'dmg_elmash', 'dmg_oak', 'dmg_aspen', 'dmg_storm', 'burn']
@@ -48,15 +48,15 @@ oyster: n=1839 precise=1508 AUC=0.616 top: live_total +0.63, bigoak -0.38, maple
 hen: n=612 precise=458 AUC=0.606 top: live_total -1.42, oak +0.61, maple +0.46, sprucefir -0.38, basswood +0.36, burn -0.36
 chicken: n=2275 precise=1780 AUC=0.566 top: live_total -0.68, oak +0.49, maple +0.27, dmg_storm -0.22, basswood +0.17, lc_water +0.15
 morel: n=451 precise=286 AUC=0.609 top: oak +0.88, live_total -0.66, bigoak -0.53, lc_wetwood -0.35, dmg_aspen -0.27, elm +0.26
-chanterelle: n=95 precise=62 AUC=0.672 top: lc_shrub -2.18, live_total +2.06, lc_decid +1.34, maple -0.62, basswood -0.60, lc_devopen +0.56
-trumpet: n=95 precise=71 AUC=0.792 top: lc_shrub -1.93, lc_decid +1.75, cottonwood -1.06, lc_water +0.97, lc_wetwood +0.87, elm -0.79
+chanterelle: n=95 precise=62 AUC=0.672 top: lc_shrub -2.17, live_total +2.06, lc_decid +1.34, maple -0.62, basswood -0.60, lc_devopen +0.56
+trumpet: n=95 precise=71 AUC=0.792 top: lc_shrub -1.93, lc_decid +1.75, cottonwood -1.05, lc_water +0.97, lc_wetwood +0.87, elm -0.79
 bolete: n=66 precise=46 (too few for a model)
-lobster: n=426 precise=317 AUC=0.728 top: cottonwood -2.32, live_total -1.38, lc_decid +1.19, willow -0.79, lc_wetwood +0.55, aspen +0.48
+lobster: n=426 precise=317 AUC=0.728 top: cottonwood -2.33, live_total -1.37, lc_decid +1.19, willow -0.79, lc_wetwood +0.55, aspen +0.48
 hedgehog: n=24 precise=13 (too few for a model)
 lionsmane: n=359 precise=285 AUC=0.62 top: oak +0.85, live_total -0.75, maple +0.75, lc_decid -0.45, basswood +0.35, lc_shrub -0.34
 cauliflower: n=2 precise=1 (too few for a model)
 puffball: n=901 precise=760 AUC=0.587 top: sprucefir -0.64, pine -0.58, oak -0.56, aspen -0.47, burn -0.28, dmg_aspen -0.25
 shaggymane: n=645 precise=561 AUC=0.693 top: oak -0.66, bigoak +0.42, live_total -0.27, dmg_aspen -0.24, aspen -0.24, sprucefir -0.24
-honey: n=160 precise=129 AUC=0.565 top: dmg_elmash -0.80, lc_grass -0.49, oak +0.36, burn -0.36, maple +0.28, live_total -0.26
+honey: n=160 precise=129 AUC=0.564 top: dmg_elmash -0.80, lc_grass -0.49, oak +0.36, burn -0.36, maple +0.28, live_total -0.26
 velvetfoot: n=102 precise=83 AUC=0.438 top: live_total +2.39, oak -0.87, maple -0.78, basswood -0.70, dmg_aspen -0.66, sprucefir -0.58
-[ok] iNaturalist: local seasons and habitat models in 1026s
+[ok] iNaturalist: local seasons and habitat models in 947s
