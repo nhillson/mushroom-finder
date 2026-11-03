@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Mushroom Finder</title>
+  <meta name="description" content="Find promising places to look for oyster, hen-of-the-woods and chicken-of-the-woods mushrooms around the Twin Cities, using forest, weather and public land data." />
+  <meta name="theme-color" content="#2f4a2c" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><path d='M6 30C6 16 18 6 32 6s26 10 26 24c0 2-2 3-4 3H10c-2 0-4-1-4-3z' fill='%23c8742c'/><path d='M24 33h16l-2 22c0 2-2 3-6 3s-6-1-6-3z' fill='%23efe4cf'/></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M6 30C6 16 18 6 32 6s26 10 26 24c0 2-2 3-4 3H10c-2 0-4-1-4-3z" fill="#c8742c"/><circle cx="22" cy="20" r="3.5" fill="#efe4cf"/><circle cx="38" cy="15" r="2.5" fill="#efe4cf"/><circle cx="44" cy="24" r="3" fill="#efe4cf"/><path d="M24 33h16l-2 22c0 2-2 3-6 3s-6-1-6-3z" fill="#efe4cf"/></svg>
+      <h1>Mushroom Finder</h1>
+    </div>
+    <div class="controls">
+      <div class="chips" id="speciesChips" role="group" aria-label="Mushrooms to look for"></div>
+      <div class="seg" id="modeSeg" role="group" aria-label="Look or harvest">
+        <button data-mode="look" aria-pressed="true">Look</button>
+        <button data-mode="harvest" aria-pressed="false">Harvest</button>
+      </div>
+      <button class="icon-btn" id="aboutBtn" aria-label="About and data sources" title="About">?</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <div id="map" aria-label="Map"></div>
+
+    <div class="map-tools">
+      <button class="fab primary" id="scanBtn"><span class="fab-icon">▦</span><span>Scan this view</span></button>
+      <button class="fab" id="locateBtn" aria-label="Go to my location" title="My location"><span class="fab-icon">◎</span></button>
+      <button class="fab" id="layersBtn" aria-label="Map layers" title="Layers"><span class="fab-icon">≡</span></button>
+    </div>
+
+    <div class="layers-pop" id="layersPop" hidden>
+      <h3>Map layers</h3>
+      <label><input type="checkbox" id="lyrLand" checked /> Public land &amp; picking rules</label>
+      <label><input type="checkbox" id="lyrInat" checked /> Community sightings (iNaturalist)</label>
+      <label class="sel">Overlay
+        <select id="lyrForest">
+          <option value="">None</option>
+        </select>
+      </label>
+      <label class="sel">Base map
+        <select id="lyrBase"></select>
+      </label>
+    </div>
+
+    <aside class="panel" id="panel" aria-live="polite">
+      <button class="grab" id="panelGrab" aria-label="Expand or collapse panel"><span></span></button>
+      <div class="panel-body">
+        <section id="conditions" class="card">
+          <div class="card-head">
+            <h2>Conditions now</h2>
+            <span class="muted" id="condWhere">Map center</span>
+          </div>
+          <div id="condBody" class="cond-body"><div class="skeleton">Loading weather…</div></div>
+        </section>
+        <section id="spot" class="card" hidden></section>
+        <section id="scanInfo" class="card" hidden></section>
+        <section class="card legend" id="legend"></section>
+      </div>
+    </aside>
+  </main>
+
+  <dialog id="introDlg">
+    <form method="dialog">
+      <h2>Before you head out</h2>
+      <p>This map shows <strong>where the habitat and weather look promising</strong>. It does not identify mushrooms and cannot tell you anything is safe to eat.</p>
+      <ul>
+        <li>Never eat a wild mushroom unless someone experienced has confirmed the ID in person.</li>
+        <li>Picking rules change. Check the land manager's current rules on site.</li>
+        <li>Areas outside mapped public land are treated as private. Get permission first.</li>
+      </ul>
+      <p class="muted">The <a href="https://www.minnesotamushrooms.org/" target="_blank" rel="noopener">Minnesota Mycological Society</a> runs forays and ID sessions.</p>
+      <button value="ok" class="btn primary">Got it</button>
+    </form>
+  </dialog>
+
+  <dialog id="aboutDlg">
+    <form method="dialog">
+      <h2>How this works</h2>
+      <p><strong>Habitat</strong> combines NLCD land cover (how much deciduous, mixed, or wooded-wetland forest is around) with USFS tree-species maps for host trees like white oak, aspen, elm and maple. The tree maps don't include red or bur oak, so oak habitat is underestimated in places.</p>
+      <p><strong>Timing</strong> compares the season window, last week's temperatures, rain from 2–10 days ago, and soil moisture.</p>
+      <p><strong>Access</strong> comes from PAD-US public lands, translated into picking rules. <span id="rulesChecked"></span></p>
+      <p><strong>Look</strong> mode counts any open public land. <strong>Harvest</strong> mode counts only land where personal-use picking is allowed, and half-counts land where rules vary.</p>
+      <h3>Data sources</h3>
+      <ul class="sources">
+        <li><a href="https://www.mrlc.gov/" target="_blank" rel="noopener">NLCD 2021 (MRLC)</a> — land cover, 30 m</li>
+        <li><a href="https://data.fs.usda.gov/geodata/rastergateway/" target="_blank" rel="noopener">USFS FIA Forest Atlas</a> — tree species density, 250 m</li>
+        <li><a href="https://www.usgs.gov/programs/gap-analysis-project/science/pad-us-data-overview" target="_blank" rel="noopener">PAD-US</a> — public and protected lands</li>
+        <li><a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> — weather and soil</li>
+        <li><a href="https://www.inaturalist.org/" target="_blank" rel="noopener">iNaturalist</a> — community sightings (locations of some are blurred for privacy)</li>
+      </ul>
+      <button value="ok" class="btn primary">Close</button>
+    </form>
+  </dialog>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
