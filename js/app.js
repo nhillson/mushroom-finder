@@ -144,9 +144,7 @@ function toggleSpeciesPop(open) {
 }
 $('#speciesBtn').onclick = (e) => { e.stopPropagation(); toggleSpeciesPop(); };
 $('#speciesDone').onclick = () => toggleSpeciesPop(false);
-document.addEventListener('click', (e) => {
-  if (!$('#speciesPop').hidden && !e.target.closest('#speciesPop') && !e.target.closest('#speciesBtn')) toggleSpeciesPop(false);
-});
+// stays open while picking; closes only from the dropdown button or Done
 
 function renderMode() {
   document.querySelectorAll('#modeSeg button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === state.mode)));
