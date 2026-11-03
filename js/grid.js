@@ -105,6 +105,13 @@ export function loadModel() {
   return modelP;
 }
 
+// How much to trust a species' sightings model: 0 below AUC 0.55, up to 0.5 at AUC 0.85+
+export function modelWeight(model, key) {
+  const md = model && model.species && model.species[key] && model.species[key].model;
+  if (!md || md.auc == null || md.auc < 0.6) return 0;
+  return Math.max(0, Math.min(0.5, (md.auc - 0.55) / 0.6));
+}
+
 // Habitat suitability from the sightings model: the share of places people look for fungi
 // that score lower than this one (0..1). null when there's no model for this species.
 export function modelSuitability(model, key, g) {

@@ -129,13 +129,13 @@ export function dayWeather(w, i) {
 
 // ---------- habitat from the detailed grid ----------
 // g: band values around the place (data/grid). modelSuit: 0..1 from the sightings model, or null.
-export function habitatGrid(key, g, modelSuit = null) {
+export function habitatGrid(key, g, modelSuit = null, modelW = 0.5) {
   const sp = SPECIES[key];
   const p = sp.g;
   const lcMap = { decid: 'lc_decid', mixed: 'lc_mixed', wetwood: 'lc_wetwood', conifer: 'lc_conifer', grass: 'lc_grass', pasture: 'lc_pasture', devopen: 'lc_devopen', shrub: 'lc_shrub' };
   let forest = 0;
   for (const [k, w] of Object.entries(sp.lc)) forest += w * (g[lcMap[k]] || 0);
-  forest = clamp(forest / 0.45);
+  forest = clamp(forest / 0.75); // full credit once ~3/4 of the area is suitable cover
   let host = 0;
   const hits = [];
   for (const [b, w] of Object.entries(p.hosts)) {
@@ -149,7 +149,7 @@ export function habitatGrid(key, g, modelSuit = null) {
   const deadHits = [];
   for (const [b, w] of Object.entries(p.dead)) {
     const v = g[b] || 0;
-    const n = b.startsWith('dead_') ? clamp(v / 5) : clamp(v);
+    const n = b.startsWith('dead_') ? clamp(v / 15) : clamp(v);
     dead += w * n;
     if (n > 0.2) deadHits.push(b);
   }
@@ -165,7 +165,7 @@ export function habitatGrid(key, g, modelSuit = null) {
   for (const [t, w] of Object.entries(p.terrain)) tsum += w * tf[t];
   const terrain = clamp(1 + 0.3 * tsum, 0.6, 1.4);
   let rule = clamp(forest * (p.floor + (1 - p.floor) * host) * terrain + 0.35 * dead * forest);
-  const value = modelSuit == null ? rule : clamp(0.5 * rule + 0.5 * modelSuit);
+  const value = modelSuit == null || !modelW ? rule : clamp((1 - modelW) * rule + modelW * modelSuit);
   return { value, rule, model: modelSuit, forest, host, dead, terrain, hits, deadHits };
 }
 

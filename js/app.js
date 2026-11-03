@@ -3,7 +3,7 @@ import { SPECIES, GRID_TREES } from './species.js';
 import { classifyLand, accessFactor, huntingWarning, STATUS_STYLE, RULES_CHECKED } from './landrules.js';
 import * as D from './data.js';
 import { timing, habitat, habitatGrid, combine, label, scoreColor, featuresAt, outlook, setLocalSeasons, seasonFactor, hasLocalSeason } from './score.js';
-import { gridMeta, gridAt, gridBox, inGrid, loadModel, modelSuitability } from './grid.js';
+import { gridMeta, gridAt, gridBox, inGrid, loadModel, modelSuitability, modelWeight } from './grid.js';
 import * as Mine from './mine.js';
 import { registerSW, saveArea, savedArea, offlineFallback } from './offline.js';
 
@@ -429,7 +429,7 @@ async function placeHabitat(lat, lng) {
   return { cover: coverR.status === 'fulfilled' ? coverR.value : null, trees: treesR.status === 'fulfilled' ? treesR.value[0] : null };
 }
 function habitatFor(k, ctx) {
-  if (ctx.g) return habitatGrid(k, ctx.g, modelSuitability(state.model, k, ctx.g));
+  if (ctx.g) return habitatGrid(k, ctx.g, modelSuitability(state.model, k, ctx.g), modelWeight(state.model, k));
   return habitat(k, ctx);
 }
 
