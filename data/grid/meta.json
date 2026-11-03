@@ -1,0 +1,208 @@
+{
+ "west": -95.6,
+ "south": 43.5,
+ "east": -91.0,
+ "north": 46.6,
+ "dlat": 0.00125,
+ "dlng": 0.00175,
+ "rows": 2480,
+ "cols": 2629,
+ "tile": 256,
+ "bands": [
+  "oak",
+  "maple",
+  "aspen",
+  "cottonwood",
+  "birch",
+  "elm",
+  "ash",
+  "basswood",
+  "willow",
+  "pine",
+  "sprucefir",
+  "bigoak",
+  "dead_hw",
+  "dead_elmash",
+  "live_total",
+  "lc_decid",
+  "lc_conifer",
+  "lc_mixed",
+  "lc_wetwood",
+  "lc_grass",
+  "lc_pasture",
+  "lc_devopen",
+  "lc_shrub",
+  "lc_water",
+  "slope",
+  "northness",
+  "valley",
+  "dmg_elmash",
+  "dmg_oak",
+  "dmg_aspen",
+  "dmg_storm",
+  "burn"
+ ],
+ "scales": {
+  "oak": {
+   "scale": 2.0,
+   "offset": 0.0,
+   "unit": "sq ft/acre (avg over cell)"
+  },
+  "maple": {
+   "scale": 2.0,
+   "offset": 0.0,
+   "unit": "sq ft/acre (avg over cell)"
+  },
+  "aspen": {
+   "scale": 2.0,
+   "offset": 0.0,
+   "unit": "sq ft/acre (avg over cell)"
+  },
+  "cottonwood": {
+   "scale": 2.0,
+   "offset": 0.0,
+   "unit": "sq ft/acre (avg over cell)"
+  },
+  "birch": {
+   "scale": 2.0,
+   "offset": 0.0,
+   "unit": "sq ft/acre (avg over cell)"
+  },
+  "elm": {
+   "scale": 2.0,
+   "offset": 0.0,
+   "unit": "sq ft/acre (avg over cell)"
+  },
+  "ash": {
+   "scale": 2.0,
+   "offset": 0.0,
+   "unit": "sq ft/acre (avg over cell)"
+  },
+  "basswood": {
+   "scale": 2.0,
+   "offset": 0.0,
+   "unit": "sq ft/acre (avg over cell)"
+  },
+  "willow": {
+   "scale": 2.0,
+   "offset": 0.0,
+   "unit": "sq ft/acre (avg over cell)"
+  },
+  "pine": {
+   "scale": 2.0,
+   "offset": 0.0,
+   "unit": "sq ft/acre (avg over cell)"
+  },
+  "sprucefir": {
+   "scale": 2.0,
+   "offset": 0.0,
+   "unit": "sq ft/acre (avg over cell)"
+  },
+  "bigoak": {
+   "scale": 2.0,
+   "offset": 0.0,
+   "unit": "sq ft/acre (avg over cell)"
+  },
+  "dead_hw": {
+   "scale": 2.0,
+   "offset": 0.0,
+   "unit": "sq ft/acre (avg over cell)"
+  },
+  "dead_elmash": {
+   "scale": 2.0,
+   "offset": 0.0,
+   "unit": "sq ft/acre (avg over cell)"
+  },
+  "live_total": {
+   "scale": 2.0,
+   "offset": 0.0,
+   "unit": "sq ft/acre (avg over cell)"
+  },
+  "lc_decid": {
+   "scale": 250.0,
+   "offset": 0.0,
+   "unit": "fraction of cell"
+  },
+  "lc_conifer": {
+   "scale": 250.0,
+   "offset": 0.0,
+   "unit": "fraction of cell"
+  },
+  "lc_mixed": {
+   "scale": 250.0,
+   "offset": 0.0,
+   "unit": "fraction of cell"
+  },
+  "lc_wetwood": {
+   "scale": 250.0,
+   "offset": 0.0,
+   "unit": "fraction of cell"
+  },
+  "lc_grass": {
+   "scale": 250.0,
+   "offset": 0.0,
+   "unit": "fraction of cell"
+  },
+  "lc_pasture": {
+   "scale": 250.0,
+   "offset": 0.0,
+   "unit": "fraction of cell"
+  },
+  "lc_devopen": {
+   "scale": 250.0,
+   "offset": 0.0,
+   "unit": "fraction of cell"
+  },
+  "lc_shrub": {
+   "scale": 250.0,
+   "offset": 0.0,
+   "unit": "fraction of cell"
+  },
+  "lc_water": {
+   "scale": 250.0,
+   "offset": 0.0,
+   "unit": "fraction of cell"
+  },
+  "slope": {
+   "scale": 5.0,
+   "offset": 0.0,
+   "unit": "degrees"
+  },
+  "northness": {
+   "scale": 120.0,
+   "offset": 128.0,
+   "unit": "-1 south .. +1 north"
+  },
+  "valley": {
+   "scale": 4.0,
+   "offset": 128.0,
+   "unit": "m relative to ~1.4 km surroundings"
+  },
+  "dmg_elmash": {
+   "scale": 250.0,
+   "offset": 0.0,
+   "unit": "recent damage, 0..1 (1 = this year)"
+  },
+  "dmg_oak": {
+   "scale": 250.0,
+   "offset": 0.0,
+   "unit": "recent damage, 0..1 (1 = this year)"
+  },
+  "dmg_aspen": {
+   "scale": 250.0,
+   "offset": 0.0,
+   "unit": "recent damage, 0..1 (1 = this year)"
+  },
+  "dmg_storm": {
+   "scale": 250.0,
+   "offset": 0.0,
+   "unit": "recent damage, 0..1 (1 = this year)"
+  },
+  "burn": {
+   "scale": 250.0,
+   "offset": 0.0,
+   "unit": "1 = burned this year, fades over ~3 years"
+  }
+ },
+ "built": "2026-11-03"
+}
