@@ -261,6 +261,7 @@ async function showSpot(lat, lng, pan = true) {
   el.hidden = false;
   el.innerHTML = `<div class="card-head"><h2>This spot</h2><span class="muted">${lat.toFixed(4)}, ${lng.toFixed(4)}</span></div><div class="skeleton">Checking forest, land and weather…</div>`;
   openPanel();
+  panel.scrollTop = 0;
   if (pan && window.innerWidth <= 760) map.panTo([lat, lng]);
 
   const [coverR, treesR, landR, wR] = await Promise.allSettled([

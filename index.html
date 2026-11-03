@@ -55,6 +55,8 @@
     <aside class="panel" id="panel" aria-live="polite">
       <button class="grab" id="panelGrab" aria-label="Expand or collapse panel"><span></span></button>
       <div class="panel-body">
+        <section id="spot" class="card" hidden></section>
+        <section id="scanInfo" class="card" hidden></section>
         <section id="conditions" class="card">
           <div class="card-head">
             <h2>Conditions now</h2>
@@ -62,8 +64,6 @@
           </div>
           <div id="condBody" class="cond-body"><div class="skeleton">Loading weather…</div></div>
         </section>
-        <section id="spot" class="card" hidden></section>
-        <section id="scanInfo" class="card" hidden></section>
         <section class="card legend" id="legend"></section>
       </div>
     </aside>
