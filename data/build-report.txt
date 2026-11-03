@@ -22,7 +22,7 @@ sample props {"objectid": 902871, "damage_area_id": "{9cb5853d-cf00-4891-948b-6d
   dmg_oak: cells 108785
   dmg_aspen: cells 62493
   dmg_storm: cells 10225
-[ok] Insect & disease damage (USFS aerial survey) in 4s
+[ok] Insect & disease damage (USFS aerial survey) in 5s
 
 ===== Wildfire perimeters (NIFC) =====
 fire features 1520
@@ -31,8 +31,11 @@ sample props keys ['OBJECTID', 'poly_SourceOID', 'poly_IncidentName', 'poly_Feat
 [ok] Wildfire perimeters (NIFC) in 2s
 
 ===== Trails and parking from OpenStreetMap =====
-trails 219667, parking 63756, 1375 tiles, 33.2 MB
-[ok] Trails and parking from OpenStreetMap in 83s
+raw: 223916 trail ways, 760214 roads, 73466 parking
+road mask 17222x18400, 10.1% of cells near a road
+trails kept 25176, dropped {'sidewalk': 144214, 'along_road': 18287, 'private': 5212, 'short': 31027}
+trails 25176, trailhead parking 26707, 1285 tiles, 10.7 MB
+[ok] Trails and parking from OpenStreetMap in 284s
 
 ===== Write grid tiles =====
 tiles written, 48.7 MB total, bands: ['oak', 'maple', 'aspen', 'cottonwood', 'birch', 'elm', 'ash', 'basswood', 'willow', 'pine', 'sprucefir', 'bigoak', 'dead_hw', 'dead_elmash', 'live_total', 'lc_decid', 'lc_conifer', 'lc_mixed', 'lc_wetwood', 'lc_grass', 'lc_pasture', 'lc_devopen', 'lc_shrub', 'lc_water', 'slope', 'northness', 'valley', 'dmg_elmash', 'dmg_oak', 'dmg_aspen', 'dmg_storm', 'burn']
@@ -56,4 +59,4 @@ puffball: n=901 precise=760 AUC=0.587 top: sprucefir -0.64, pine -0.58, oak -0.5
 shaggymane: n=645 precise=561 AUC=0.693 top: oak -0.66, bigoak +0.42, live_total -0.27, dmg_aspen -0.24, aspen -0.24, sprucefir -0.24
 honey: n=160 precise=129 AUC=0.565 top: dmg_elmash -0.80, lc_grass -0.49, oak +0.36, burn -0.36, maple +0.28, live_total -0.26
 velvetfoot: n=102 precise=83 AUC=0.438 top: live_total +2.39, oak -0.87, maple -0.78, basswood -0.70, dmg_aspen -0.66, sprucefir -0.58
-[ok] iNaturalist: local seasons and habitat models in 1043s
+[ok] iNaturalist: local seasons and habitat models in 1026s
