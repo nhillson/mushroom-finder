@@ -16,6 +16,9 @@ export const REGIONS = {
     grid: 'data/grid-socal', model: 'data/model-socal.json', trails: 'data/trails-socal',
     // fruiting follows soaking winter rains by a few weeks
     rain: { from: 3, to: 24, full: 1.5 },
+    // oak woodland is often mapped as scrub or grass in NLCD; let tree inventory basal area
+    // (sq ft/acre) count as woodland too, reaching full credit at this value
+    woodlandFromTrees: 35,
     club: { name: 'Los Angeles Mycological Society', url: 'https://lamushrooms.org/' },
     rulesChecked: 'November 2026',
   },

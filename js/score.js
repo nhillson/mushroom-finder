@@ -140,6 +140,8 @@ export function habitatGrid(key, g, modelSuit = null, modelW = 0.5) {
   let forest = 0;
   for (const [k, w] of Object.entries(sp.lc)) forest += w * (g[lcMap[k]] || 0);
   forest = clamp(forest / 0.75); // full credit once ~3/4 of the area is suitable cover
+  const wft = region().woodlandFromTrees;
+  if (wft && Object.keys(p.hosts).length) forest = Math.max(forest, clamp((g.live_total || 0) / wft));
   let host = 0;
   const hits = [];
   for (const [b, w] of Object.entries(p.hosts)) {

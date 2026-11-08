@@ -347,7 +347,7 @@ BASE.candycap = {
   hostTrees: {}, hostScale: 1, hostFloor: 1,
   seasons: [{ start: '11-15', full: '12-20', fade: '03-01', end: '04-01', peak: 1.0 }],
   temp: SC_COOL,
-  g: { hosts: { oak: 1, pine: 0.3 }, hostScale: 30, floor: 0.15, dead: {}, terrain: { north: 0.4, slope: 0.3 } },
+  g: { hosts: { oak: 1, pine: 0.3 }, hostScale: 55, floor: 0.15, dead: {}, terrain: { north: 0.4, slope: 0.3 } },
 };
 
 BASE.blewit = {
@@ -362,7 +362,7 @@ BASE.blewit = {
   hostTrees: {}, hostScale: 1, hostFloor: 1,
   seasons: [{ start: '11-01', full: '12-01', fade: '02-28', end: '04-10', peak: 1.0 }],
   temp: SC_COOL,
-  g: { hosts: { oak: 0.8, eucalyptus: 0.3, sycamore: 0.3 }, hostScale: 30, floor: 0.5, dead: {}, terrain: {} },
+  g: { hosts: { oak: 0.8, eucalyptus: 0.3, sycamore: 0.3 }, hostScale: 42, floor: 0.5, dead: {}, terrain: {} },
 };
 
 const SOCAL = {
@@ -374,17 +374,18 @@ const SOCAL = {
     seasons: [{ start: '09-20', full: '11-01', fade: '02-28', end: '04-15', peak: 1.0 }],
     temp: { minHigh: 50, idealLow: 58, idealHigh: 82, maxHigh: 95 },
     freezeKill: null,
-    g: { hosts: { oak: 1, eucalyptus: 1.2, sycamore: 0.4, cottonwood: 0.3 }, hostScale: 30, floor: 0.25, dead: { dead_hw: 0.6, dmg_oak: 0.4 }, terrain: { valley: 0.3 } },
+    g: { hosts: { oak: 1, eucalyptus: 1.2, sycamore: 0.4, cottonwood: 0.3 }, hostScale: 52, floor: 0.25, dead: { dead_hw: 0.6, dmg_oak: 0.4 }, terrain: { valley: 0.3 } },
   },
   morel: {
     hosts: 'In the mountains, burned conifer forest the spring after a fire (Jeffrey and ponderosa pine, fir). In town, disturbed ground and wood-chip landscaping.',
     season: 'April through June at elevation (about 5,000-8,000 ft); earlier in town.',
     lc: { conifer: 1.0, mixed: 0.8, decid: 0.5, shrub: 0.3, devopen: 0.3 },
     seasons: [{ start: '03-15', full: '04-20', fade: '06-10', end: '07-05', peak: 1.0 }],
-    g: { hosts: { pine: 1, sprucefir: 1, douglasfir: 0.8, oak: 0.3, cottonwood: 0.4 }, hostScale: 30, floor: 0.15, dead: { burn: 1.5, dead_hw: 0.3 }, terrain: {} },
+    g: { hosts: { pine: 1, sprucefir: 1, douglasfir: 0.8, oak: 0.3, cottonwood: 0.4 }, hostScale: 55, floor: 0.15, dead: { burn: 1.5, dead_hw: 0.3 }, terrain: {} },
   },
   shaggymane: {
     season: 'November through March after rains, on lawns, roadsides and park edges.',
+    lc: { devopen: 1.0, grass: 0.6, pasture: 0.5, shrub: 0.1, decid: 0.15 },
     seasons: [{ start: '10-25', full: '11-20', fade: '03-01', end: '04-01', peak: 1.0 }],
     temp: SC_COOL,
   },
@@ -395,7 +396,7 @@ const SOCAL = {
     seasons: [{ start: '10-25', full: '11-20', fade: '02-15', end: '03-20', peak: 1.0 }],
     temp: SC_COOL,
     freezeKill: null,
-    g: { hosts: { oak: 1, sycamore: 0.4, cottonwood: 0.4, eucalyptus: 0.2 }, hostScale: 30, floor: 0.3, dead: { dead_hw: 1, dmg_oak: 0.5 }, terrain: {} },
+    g: { hosts: { oak: 1, sycamore: 0.4, cottonwood: 0.4, eucalyptus: 0.2 }, hostScale: 52, floor: 0.3, dead: { dead_hw: 1, dmg_oak: 0.5 }, terrain: {} },
   },
   lionsmane: {
     hosts: 'Wounds and dead wood of oaks, especially coast live oak, in canyons and older woodland.',
@@ -404,7 +405,7 @@ const SOCAL = {
     seasons: [{ start: '11-15', full: '12-15', fade: '03-01', end: '04-01', peak: 1.0 }],
     temp: SC_COOL,
     freezeKill: null,
-    g: { hosts: { oak: 1, sycamore: 0.3 }, hostScale: 30, floor: 0.15, dead: { dead_hw: 1, dmg_oak: 0.5 }, terrain: { valley: 0.3 } },
+    g: { hosts: { oak: 1, sycamore: 0.3 }, hostScale: 52, floor: 0.15, dead: { dead_hw: 1, dmg_oak: 0.5 }, terrain: { valley: 0.3 } },
   },
   oyster: {
     hosts: 'Dead and dying cottonwood, willow, sycamore and alder along streams, plus other hardwoods.',
@@ -413,7 +414,7 @@ const SOCAL = {
     lc: { decid: 1.0, wetwood: 1.0, mixed: 0.8, conifer: 0.6, shrub: 0.15 },
     seasons: [{ start: '11-15', full: '12-20', fade: '04-01', end: '05-15', peak: 1.0 }],
     temp: { minHigh: 45, idealLow: 52, idealHigh: 75, maxHigh: 88 },
-    g: { hosts: { cottonwood: 1, willow: 1, sycamore: 0.8, alder: 0.8, oak: 0.3 }, hostScale: 30, floor: 0.2, dead: { dead_hw: 1, dmg_storm: 0.5 }, terrain: { valley: 0.8 } },
+    g: { hosts: { cottonwood: 1, willow: 1, sycamore: 0.8, alder: 0.8, oak: 0.3 }, hostScale: 16, floor: 0.2, dead: { dead_hw: 1, dmg_storm: 0.5 }, terrain: { valley: 0.8 } },
   },
   puffball: {
     name: 'Western giant puffball',
@@ -421,7 +422,7 @@ const SOCAL = {
     inatTaxa: [{ q: 'Calvatia booniana', rank: 'species' }, { q: 'Calvatia gigantea', rank: 'species' }],
     hosts: 'Open, dry ground: grassland, sage and scrub edges, meadows and park lawns, often in the mountains and high desert edge.',
     season: 'Spring through summer, after rain or summer thunderstorms.',
-    lc: { grass: 1.0, shrub: 0.5, pasture: 0.7, devopen: 0.6, decid: 0.1 }, // dense chaparral is poor puffball ground
+    lc: { grass: 0.55, shrub: 0.25, pasture: 0.5, devopen: 0.45, decid: 0.05 }, // sporadic; dense chaparral is poor ground
     seasons: [{ start: '04-01', full: '05-15', fade: '09-15', end: '10-31', peak: 1.0 }],
     temp: { minHigh: 60, idealLow: 70, idealHigh: 92, maxHigh: 102 },
   },
@@ -433,7 +434,7 @@ const SOCAL = {
     lc: { conifer: 1.0, decid: 1.0, mixed: 1.0, shrub: 0.25, wetwood: 0.4 },
     seasons: [{ start: '12-01', full: '01-01', fade: '03-15', end: '04-15', peak: 1.0 }],
     temp: SC_COOL,
-    g: { hosts: { oak: 1, bigoak: 0.5 }, hostScale: 30, floor: 0.15, dead: {}, terrain: { north: 0.4, slope: 0.3, valley: 0.2 } },
+    g: { hosts: { oak: 1, bigoak: 0.5 }, hostScale: 56, floor: 0.15, dead: {}, terrain: { north: 0.4, slope: 0.3, valley: 0.2 } },
   },
   bolete: {
     name: 'White king bolete',
@@ -447,7 +448,7 @@ const SOCAL = {
       { start: '12-01', full: '01-01', fade: '02-28', end: '03-31', peak: 0.5 },
     ],
     temp: { minHigh: 50, idealLow: 60, idealHigh: 85, maxHigh: 95 },
-    g: { hosts: { pine: 1, oak: 0.8, sprucefir: 0.5, douglasfir: 0.5 }, hostScale: 30, floor: 0.2, dead: {}, terrain: {} },
+    g: { hosts: { pine: 1, oak: 0.8, sprucefir: 0.5, douglasfir: 0.5 }, hostScale: 67, floor: 0.2, dead: {}, terrain: {} },
   },
 };
 
