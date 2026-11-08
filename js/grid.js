@@ -1,16 +1,19 @@
-// Reads the precomputed habitat grid (data/grid, built by pipeline/build.py on GitHub Actions).
-// Each tile is 256x256 cells, band-major uint8, gzip. Values are decoded with the per-band scale.
+// Reads the precomputed habitat grid for the active region (data/grid, data/grid-socal; built by
+// pipeline/build.py on GitHub Actions). Each tile is 256x256 cells, band-major uint8, gzip.
+import { region } from './config.js';
 
-let metaP = null;
-const tiles = new Map(); // "ty_tx" -> Promise<Uint8Array|null>
+const metaP = {}; // grid dir -> Promise<meta|null>
+const tiles = new Map(); // "dir/ty_tx" -> Promise<Uint8Array|null>
 
 export function gridMeta() {
-  if (!metaP) {
-    metaP = fetch('data/grid/meta.json', { cache: 'no-cache' })
+  const dir = region().grid;
+  if (!metaP[dir]) {
+    metaP[dir] = fetch(dir + '/meta.json', { cache: 'no-cache' })
       .then((r) => (r.ok ? r.json() : null))
+      .then((m) => (m ? { ...m, dir } : null))
       .catch(() => null);
   }
-  return metaP;
+  return metaP[dir];
 }
 
 async function gunzip(buf) {
@@ -20,9 +23,9 @@ async function gunzip(buf) {
 }
 
 function loadTile(m, ty, tx) {
-  const key = ty + '_' + tx;
+  const key = `${m.dir}/${ty}_${tx}`;
   if (!tiles.has(key)) {
-    tiles.set(key, fetch(`data/grid/${key}.bin.gz?v=${m.version || m.built}`)
+    tiles.set(key, fetch(`${key}.bin.gz?v=${m.version || m.built}`)
       .then((r) => (r.ok ? r.arrayBuffer() : null))
       .then((b) => (b ? gunzip(b) : null))
       .catch(() => null));
@@ -93,16 +96,17 @@ export async function gridTileUrls(south, west, north, east) {
   const r1 = Math.min(Math.ceil(m.rows / T) - 1, Math.floor((m.north - south) / m.dlat / T));
   const c0 = Math.max(0, Math.floor((west - m.west) / m.dlng / T));
   const c1 = Math.min(Math.ceil(m.cols / T) - 1, Math.floor((east - m.west) / m.dlng / T));
-  const urls = ['data/grid/meta.json', 'data/model.json'];
-  for (let ty = r0; ty <= r1; ty++) for (let tx = c0; tx <= c1; tx++) urls.push(`data/grid/${ty}_${tx}.bin.gz?v=${m.version || m.built}`);
+  const urls = [m.dir + '/meta.json', region().model];
+  for (let ty = r0; ty <= r1; ty++) for (let tx = c0; tx <= c1; tx++) urls.push(`${m.dir}/${ty}_${tx}.bin.gz?v=${m.version || m.built}`);
   return urls;
 }
 
-// ---------- sightings model (data/model.json) ----------
-let modelP = null;
+// ---------- sightings model (data/model.json, data/model-socal.json) ----------
+const modelP = {};
 export function loadModel() {
-  if (!modelP) modelP = fetch('data/model.json', { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
-  return modelP;
+  const url = region().model;
+  if (!modelP[url]) modelP[url] = fetch(url, { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  return modelP[url];
 }
 
 // How much to trust a species' sightings model: 0 below AUC 0.55, up to 0.5 at AUC 0.85+

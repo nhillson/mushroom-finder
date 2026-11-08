@@ -16,7 +16,81 @@ const LINKS = {
   threeRivers: 'https://www.threeriversparks.org/blog/foraging-parks-and-why-it-isnt-allowed',
   wiParks: 'https://dnr.wisconsin.gov/topic/parks/rules/gathering',
   hunting: 'https://www.dnr.state.mn.us/hunting/index.html',
+  // California
+  caParks: 'https://www.law.cornell.edu/regulations/california/14-CCR-4306',
+  cdfwLands: 'https://www.law.cornell.edu/regulations/california/14-CCR-550',
+  angelesPermits: 'https://www.fs.usda.gov/r05/angeles/permits',
+  samo: 'https://www.nps.gov/samo/learn/management/compendium.htm',
+  blm: 'https://www.blm.gov/sites/default/files/docs/2021-10/Can%20I%20Keep%20This%202021%20-%20508%20Final%20Version.pdf',
+  caHunting: 'https://wildlife.ca.gov/Hunting',
 };
+
+// ---------- California (Southern California region) ----------
+// Checked Nov 2026: CA State Parks ban picking unless posted (14 CCR 4306); CDFW lands ban removing
+// plants (14 CCR 550); Angeles and San Bernardino NFs require a forest product permit for mushrooms;
+// Santa Monica Mountains NRA (NPS land) allows one handful per person to eat in the park; BLM allows
+// small personal-use amounts.
+const CA_RULES = [
+  { test: (d, m) => /tribal|indian|reservation/.test(d + m), status: 'closed', label: 'Tribal land', note: 'Tribal land. Do not enter or forage without permission from the tribe.' },
+  { test: (d, m) => /military|defense/.test(d + ' ' + m), status: 'closed', label: 'Military land', note: 'Closed to the public.' },
+  {
+    test: (d, m) => /forest service/.test(m),
+    status: 'permit', hunt: true, label: 'National forest',
+    note: 'The Angeles and San Bernardino National Forests require a forest product permit to collect mushrooms, even for personal use. Call the district ranger station before picking. Wilderness areas can have extra limits.',
+    link: LINKS.angelesPermits,
+  },
+  {
+    test: (d, m, n) => /national park service/.test(m) && /santa monica mountains/.test(n),
+    status: 'check', label: 'Santa Monica Mountains NRA',
+    note: 'On National Park Service land here you may pick one handful of mushrooms per person to eat in the park, not to take home. State, county and conservancy land inside the recreation area has its own (stricter) rules.',
+    link: LINKS.samo,
+  },
+  { test: (d, m) => /national park service/.test(m), status: 'check', label: 'National Park Service', note: 'Each park sets its own gathering rules in its compendium. Check before picking.' },
+  {
+    test: (d, m) => /bureau of land management/.test(m),
+    status: 'harvest', hunt: true, label: 'BLM land',
+    note: 'Small amounts of mushrooms may be collected for personal use on most BLM land. Rules are stricter in wilderness areas and national monuments.',
+    link: LINKS.blm,
+  },
+  { test: (d, m) => /fish and wildlife service|wildlife refuge/.test(d + ' ' + m), status: 'check', hunt: true, label: 'National wildlife refuge', note: 'Each refuge sets its own gathering rules. Check that refuge\'s regulations.' },
+  {
+    test: (d, m) => /fish and wildlife|ecological reserve|wildlife area/.test(d + ' ' + m),
+    status: 'look', hunt: true, label: 'CDFW wildlife land',
+    note: 'California Fish and Wildlife lands prohibit removing plants and other natural material. Look only.',
+    link: LINKS.cdfwLands,
+  },
+  {
+    test: (d, m) => /state park|state recreation|state beach|state historic|state reserve/.test(d) || /state park and recreation/.test(m),
+    status: 'look', label: 'California state park',
+    note: 'California State Parks prohibit picking unless mushroom gathering is posted as allowed at that park. In Southern California, assume look only.',
+    link: LINKS.caParks,
+  },
+  { test: (d, m) => /^state |\bstate\b/.test(m), status: 'look', label: 'State land', note: 'State conservation land: assume no collecting unless signs say otherwise.' },
+  { test: (d, m) => /regional agency|regional water|water district|conservancy|conservation authority/.test(m), status: 'look', label: 'Regional park or conservancy land', note: 'Regional park agencies and conservancies (such as the Mountains Recreation and Conservation Authority) generally prohibit removing natural materials. Look only.' },
+  { test: (d, m) => /army corps/.test(m), status: 'check', label: 'Army Corps of Engineers', note: 'Recreation areas run by the Army Corps have their own rules. Check before picking.' },
+  { test: (d, m) => /local|county|city|municipal/.test(d + ' ' + m), status: 'look', label: 'City or county park', note: 'City and county parks in Southern California generally prohibit removing plants or natural materials. Look only, or check the park\'s rules.' },
+  { test: (d, m) => /private|non-governmental|ngo|land trust|easement/.test(d + ' ' + m), status: 'look', label: 'Private or conservation land', note: 'Owned by a land trust or private group. Check whether visitors are allowed, and ask before picking.' },
+];
+
+function classifyCA(props) {
+  if (!props) {
+    return { status: 'closed', label: 'Private or unmapped', note: 'Not in the public lands database. Treat it as private: get the owner\'s permission first.' };
+  }
+  const d = (props.DesTp_Desc || '').toLowerCase();
+  const m = ((props.MngTp_Desc || '') + ' ' + (props.MngNm_Desc || '')).toLowerCase();
+  const n = (props.Unit_Nm || '').toLowerCase();
+  const access = props.Pub_Access;
+  for (const r of CA_RULES) {
+    if (r.test(d, m, n)) {
+      const out = { status: r.status, label: r.label, note: r.note, link: r.link, hunt: !!r.hunt };
+      if (access === 'XA') return { ...out, status: 'closed', note: 'Closed to public access.' };
+      if (access === 'RA') out.note = 'Restricted access (permit, season or hours may apply). ' + out.note;
+      return out;
+    }
+  }
+  if (access === 'XA') return { status: 'closed', label: props.DesTp_Desc || 'Closed', note: 'Closed to public access.' };
+  return { status: 'check', label: props.DesTp_Desc || 'Public land', note: 'Public land with no foraging rule on file here. Check with the manager before picking.' };
+}
 
 // Metro park systems with known rules (matched on unit name)
 const THREE_RIVERS = /baker park|carver park|crow-hassan|crow hassan|elm creek park|hyland|bush lake|anderson lakes|lake rebecca|murphy-hanrehan|murphy hanrehan|cleary lake|bryant lake|french regional|french park|fish lake regional|silverwood|eagle lake regional|lake sarah|gale woods|noerenberg|coon rapids dam|mississippi gateway|spring lake regional|cedar lake farm|kingswood|glen lake|lowry nature/;
@@ -167,6 +241,7 @@ const WI_BORDER = [
   [43.85, -91.27], [43.5, -91.22],
 ];
 export function stateAt(lat, lng) {
+  if (lng < -114 && lat < 42.1) return 'CA';
   if (lat < 43.5) return 'IA';
   for (let i = 0; i < WI_BORDER.length - 1; i++) {
     const [la1, ln1] = WI_BORDER[i], [la2, ln2] = WI_BORDER[i + 1];
@@ -179,8 +254,9 @@ export function stateAt(lat, lng) {
 }
 
 export function classifyLand(props, lat, lng) {
-  const out = classifyMN(props, lat, lng);
   const st = lat != null ? stateAt(lat, lng) : 'MN';
+  if (st === 'CA') return { ...classifyCA(props), state: 'CA' };
+  const out = { ...classifyMN(props, lat, lng), state: st };
   if (st === 'WI' && props && out.label === 'State park') {
     return { ...out, note: 'Wisconsin state parks allow hand-picking wild mushrooms for personal consumption.', link: LINKS.wiParks };
   }
@@ -232,6 +308,16 @@ export function huntingWarning(cls, date = new Date()) {
   if (!cls || !cls.hunt) return null;
   const md = (date.getMonth() + 1) * 100 + date.getDate();
   const y = date.getFullYear();
+  if (cls.state === 'CA') {
+    // Quail dates confirmed for 2026-27; deer windows are typical timing for zones D11-D16.
+    if (md >= 1010 && md <= 1122)
+      return { level: 'high', text: 'Deer season is likely open in Southern California\'s national forests (the general season usually runs mid-October into November; later in zone D16). Wear bright colors and stay on trails.', link: LINKS.caHunting };
+    if (md >= 901 || md <= 131)
+      return { level: 'medium', text: `Hunting seasons are open on national forest and BLM land (archery deer in September; quail ${y === 2026 || (y === 2027 && md <= 131) ? 'Oct. 17, 2026 to Jan. 31, 2027' : 'mid-October through January'}). Wear something bright.`, link: LINKS.caHunting };
+    if (md >= 325 && md <= 531)
+      return { level: 'medium', text: 'Spring turkey season typically runs late March into May on public hunting land. Wear something bright.', link: LINKS.caHunting };
+    return null;
+  }
   if (y === 2026 && md >= 1107 && md <= 1122)
     return { level: 'high', text: 'Firearms deer season is open (opened Nov. 7). Wear blaze orange, stay on trails, and consider going midday or picking somewhere that doesn\'t allow hunting.', link: LINKS.hunting };
   if (md >= 1123 && md <= 1215)
@@ -245,7 +331,7 @@ export function huntingWarning(cls, date = new Date()) {
 
 export const STATUS_STYLE = {
   harvest: { color: '#2e7d32', label: 'Picking allowed (personal use)' },
-  permit: { color: '#16a085', label: 'Allowed with free permit, set areas' },
+  permit: { color: '#16a085', label: 'Allowed with a permit' },
   check: { color: '#e0a800', label: 'Rules vary — check first' },
   look: { color: '#1f6fb2', label: 'Look only' },
   closed: { color: '#9e2a2b', label: 'Closed / no access' },

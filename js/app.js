@@ -1,6 +1,6 @@
-import { CFG, NLCD, TREES, OVERLAYS } from './config.js';
-import { SPECIES, GRID_TREES } from './species.js';
-import { classifyLand, accessFactor, huntingWarning, STATUS_STYLE, RULES_CHECKED } from './landrules.js';
+import { CFG, NLCD, TREES, OVERLAYS, REGIONS, ACTIVE, region, regionAt } from './config.js';
+import { SPECIES, GRID_TREES, useRegion } from './species.js';
+import { classifyLand, accessFactor, huntingWarning, STATUS_STYLE } from './landrules.js';
 import * as D from './data.js';
 import { timing, habitat, habitatGrid, combine, label, scoreColor, featuresAt, outlook, setLocalSeasons, seasonFactor, hasLocalSeason } from './score.js';
 import { gridMeta, gridAt, gridBox, inGrid, loadModel, modelSuitability, modelWeight } from './grid.js';
@@ -18,8 +18,23 @@ const store = {
   set(k, v) { try { localStorage.setItem('mf.' + k, JSON.stringify(v)); } catch { /* storage blocked */ } },
 };
 
+// ---------- region (Minnesota or Southern California) ----------
+// Chosen by ?region= in the link, else where the map was last left, else Minnesota.
+const params = new URLSearchParams(location.search);
+const savedView = store.get('view', null);
+const urlRegion = REGIONS[params.get('region')] ? params.get('region') : null;
+ACTIVE.region = urlRegion || (savedView && regionAt(savedView.c[0], savedView.c[1])) || store.get('region', 'mn');
+if (!REGIONS[ACTIVE.region]) ACTIVE.region = 'mn';
+useRegion(ACTIVE.region);
+const speciesKey = () => (ACTIVE.region === 'mn' ? 'species' : 'species.' + ACTIVE.region);
+function loadSpeciesSel() {
+  const sel = new Set(store.get(speciesKey(), Object.keys(SPECIES)).filter((k) => SPECIES[k]));
+  return sel.size ? sel : new Set(Object.keys(SPECIES));
+}
+const nowIn = (tz) => new Date().toLocaleDateString('en-CA', { timeZone: tz });
+
 const state = {
-  species: new Set(store.get('species', Object.keys(SPECIES)).filter((k) => SPECIES[k])),
+  species: loadSpeciesSel(),
   mode: store.get('mode', 'look'),
   lands: null, // last PAD-US FeatureCollection for view
   landsBounds: null,
@@ -33,8 +48,8 @@ const state = {
 registerSW();
 
 // ---------- map ----------
-const map = L.map('map', { zoomControl: false, maxBounds: [[40, -100], [50, -86]], minZoom: 6 })
-  .setView(store.get('view', null)?.c || CFG.center, store.get('view', null)?.z || CFG.zoom);
+const startView = urlRegion || !savedView ? { c: region().center, z: region().zoom } : savedView;
+const map = L.map('map', { zoomControl: false, minZoom: 4 }).setView(startView.c, startView.z);
 L.control.zoom({ position: 'topright' }).addTo(map);
 L.control.scale({ imperial: true, metric: false, position: 'bottomright' }).addTo(map);
 
@@ -113,7 +128,7 @@ function renderChips() {
       .join('');
 }
 function speciesChanged() {
-  store.set('species', [...state.species]);
+  store.set(speciesKey(), [...state.species]);
   renderChips();
   refreshConditions();
   refreshObservations();
@@ -160,16 +175,54 @@ $('#modeSeg').onclick = (e) => {
   if (state.lastSpot) showSpot(state.lastSpot.lat, state.lastSpot.lng, false);
 };
 
-// ---------- data that loads once: habitat grid and sightings model ----------
-gridMeta().then((m) => { state.grid = m; });
-loadModel().then((m) => {
-  state.model = m;
-  if (m) {
-    setLocalSeasons(m);
-    renderChips();
-    refreshConditions();
-  }
-});
+// ---------- data per region: habitat grid and sightings model ----------
+function loadRegionData() {
+  const r = ACTIVE.region;
+  state.grid = null;
+  state.model = null;
+  setLocalSeasons(null);
+  gridMeta().then((m) => { if (ACTIVE.region === r) state.grid = m; });
+  loadModel().then((m) => {
+    if (ACTIVE.region !== r) return;
+    state.model = m;
+    if (m) {
+      setLocalSeasons(m);
+      renderChips();
+      refreshConditions();
+    }
+  });
+}
+loadRegionData();
+
+function renderRegionText() {
+  const R = region();
+  $('#clubLine').innerHTML = `The <a href="${R.club.url}" target="_blank" rel="noopener">${esc(R.club.name)}</a> runs forays and ID sessions.`;
+  $('#rulesChecked').textContent = `Rules last checked ${R.rulesChecked}.`;
+  $('#spRegion').textContent = R.name;
+  $('#lyrRegion').value = R.id;
+}
+
+// Switch the whole app to another region: its mushrooms, seasons, data and rules.
+function switchRegion(r) {
+  if (r === ACTIVE.region || !REGIONS[r]) return;
+  ACTIVE.region = r;
+  store.set('region', r);
+  useRegion(r);
+  state.species = loadSpeciesSel();
+  state.lands = null;
+  state.landsBounds = null;
+  state.recent = {};
+  recentKey = '';
+  state.scan = null;
+  scanLayer.clearLayers();
+  $('#scanInfo').hidden = true;
+  try { history.replaceState(null, '', '?region=' + r); } catch { /* ignore */ }
+  loadRegionData();
+  renderRegionText();
+  renderChips();
+  renderLegend();
+  toast(`Now showing ${region().name}.`);
+}
 
 // ---------- weather ----------
 async function weatherNear(lat, lng) {
@@ -214,12 +267,15 @@ function timingRows(w) {
 }
 
 function weatherBlock(w) {
-  const days = w.days;
+  // chart: the last two weeks plus the forecast
+  const ti = w.days.findIndex((d) => d.today);
+  const days = ti >= 0 ? w.days.slice(Math.max(0, ti - 14)) : w.days;
+  const long = region().rain.to > 14;
   const max = Math.max(0.5, ...days.map((d) => d.rain || 0));
   const bars = days.map((d) => `<i class="${d.future ? 'future' : ''} ${d.today ? 'today' : ''}" style="height:${Math.max(2, ((d.rain || 0) / max) * 100)}%" title="${d.date}: ${(d.rain || 0).toFixed(2)} in"></i>`).join('');
   return `${w.offline ? '<p class="banner">Offline: showing the weather saved with your offline area.</p>' : ''}
     <div class="wx-row">
-      <div class="wx"><b>${w.rain14.toFixed(2)}″</b><span>rain, last 14 days</span></div>
+      <div class="wx"><b>${(long ? w.rain30 : w.rain14).toFixed(2)}″</b><span>rain, last ${long ? 30 : 14} days</span></div>
       <div class="wx"><b>${Math.round(w.high7)}° / ${Math.round(w.low7)}°</b><span>avg high / low, 7 days</span></div>
       <div class="wx"><b>${isFinite(w.soilT) ? Math.round(w.soilT) + '°' : '—'}</b><span>soil temp (2″)</span></div>
     </div>
@@ -228,7 +284,7 @@ function weatherBlock(w) {
 }
 
 function huntBanner() {
-  const h = huntingWarning({ hunt: true });
+  const h = huntingWarning({ hunt: true, state: region().state });
   if (!h || h.level !== 'high') return '';
   return `<p class="banner hunt">🟠 ${esc(h.text)} <a href="${h.link}" target="_blank" rel="noopener">Seasons</a></p>`;
 }
@@ -250,22 +306,27 @@ async function refreshConditions() {
 
 // ---------- recent sightings nearby (live "it's up" signal) ----------
 let recentKey = '';
-const taxonIds = {};
+const taxonIds = {}; // "region:key" -> [iNat taxon ids]
 async function speciesTaxa() {
+  const out = {};
   for (const k of Object.keys(SPECIES)) {
-    if (!taxonIds[k]) taxonIds[k] = await Promise.all(SPECIES[k].inatTaxa.map((t) => D.resolveTaxon(t.q, t.rank)));
+    const id = ACTIVE.region + ':' + k;
+    if (!taxonIds[id]) taxonIds[id] = await Promise.all(SPECIES[k].inatTaxa.map((t) => D.resolveTaxon(t.q, t.rank)));
+    out[k] = taxonIds[id];
   }
-  return taxonIds;
+  return out;
 }
 async function refreshRecent() {
   const c = map.getCenter();
   const key = c.lat.toFixed(1) + ',' + c.lng.toFixed(1);
   if (key === recentKey) return;
   recentKey = key;
+  const r = ACTIVE.region;
   try {
     const ids = await speciesTaxa();
     const obs = await D.recentNear(c.lat, c.lng, 60, Object.values(ids).flat(), 14);
-    const today = new Date(new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' }) + 'T12:00:00');
+    if (ACTIVE.region !== r) return;
+    const today = new Date(nowIn(region().tz) + 'T12:00:00');
     const rec = {};
     for (const o of obs) {
       const k = Object.keys(ids).find((kk) => ids[kk].some((id) => o.taxa.includes(id)));
@@ -654,7 +715,7 @@ function renderMine() {
 
 function openMineDialog(kind, lat, lng, saved, land) {
   const dlg = $('#mineDlg');
-  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
+  const today = nowIn(region().tz);
   const opts = Object.entries(SPECIES).map(([k, s]) => `<option value="${k}">${s.name}</option>`).join('');
   const defaultName = saved?.name || land?.props?.Unit_Nm || '';
   dlg.innerHTML = `<form id="mineForm">
@@ -876,10 +937,16 @@ function renderLegend() {
     <div class="lg-item"><span class="star lg">★</span>My saved spot</div>
     ${[...state.species].map((k) => `<div class="lg-item"><span class="dot" style="--c:${SPECIES[k].color}"></span>${SPECIES[k].name} sighting</div>`).join('')}
     ${fo ? `<div class="lg-item"><span class="sw" style="--c:${fo.color}"></span>${fo.name}</div>` : ''}
-    <p class="muted" style="margin:8px 0 0">Tap anywhere on the map to check that spot. Rules last checked ${RULES_CHECKED}.</p>`;
+    <p class="muted" style="margin:8px 0 0">Tap anywhere on the map to check that spot. Rules last checked ${region().rulesChecked}.</p>`;
 }
 renderLegend();
-$('#rulesChecked').textContent = `Rules last checked ${RULES_CHECKED}.`;
+for (const R of Object.values(REGIONS)) $('#lyrRegion').insertAdjacentHTML('beforeend', `<option value="${R.id}">${esc(R.name)}</option>`);
+$('#lyrRegion').onchange = (e) => {
+  const R = REGIONS[e.target.value];
+  switchRegion(R.id);
+  map.setView(R.center, R.zoom);
+};
+renderRegionText();
 
 // ---------- panel (phone bottom sheet) ----------
 const panel = $('#panel');
@@ -907,6 +974,9 @@ let moveT;
 map.on('moveend', () => {
   clearTimeout(moveT);
   moveT = setTimeout(() => {
+    const c = map.getCenter();
+    const r = regionAt(c.lat, c.lng);
+    if (r && r !== ACTIVE.region) switchRegion(r);
     store.set('view', { c: [map.getCenter().lat, map.getCenter().lng], z: map.getZoom() });
     refreshConditions();
     refreshLands();

@@ -1,4 +1,4 @@
-import { CFG, NLCD, TREES } from './config.js';
+import { CFG, NLCD, TREES, region } from './config.js';
 
 async function getJSON(url, opts) {
   const r = await fetch(url, opts);
@@ -212,11 +212,11 @@ function weatherParams(locs) {
     longitude: locs.map((l) => l[1].toFixed(3)).join(','),
     daily: 'temperature_2m_max,temperature_2m_min,precipitation_sum',
     hourly: 'soil_temperature_6cm,soil_moisture_3_to_9cm',
-    past_days: '14',
+    past_days: '30',
     forecast_days: '7',
     temperature_unit: 'fahrenheit',
     precipitation_unit: 'inch',
-    timezone: 'America/Chicago',
+    timezone: 'auto',
   });
 }
 export async function weatherAt(locs) {
@@ -231,9 +231,11 @@ export function summarizeWeatherJSON(j) {
 
 function summarizeWeather(w) {
   const d = w.daily;
-  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
+  // local time at the place (Open-Meteo reports its UTC offset)
+  const local = new Date(Date.now() + (w.utc_offset_seconds || 0) * 1000).toISOString();
+  const today = local.slice(0, 10);
   let ti = d.time.indexOf(today);
-  if (ti < 0) ti = 14;
+  if (ti < 0) ti = 30;
   const sum = (a, i0, i1) => a.slice(Math.max(0, i0), Math.max(0, i1)).reduce((s, v) => s + (v || 0), 0);
   const mean = (a, i0, i1) => {
     const s = a.slice(Math.max(0, i0), i1).filter((v) => v != null);
@@ -241,8 +243,8 @@ function summarizeWeather(w) {
   };
   // soil temp: average of the last 24 hourly values up to now
   const h = w.hourly || {};
-  // Open-Meteo hourly times are local (America/Chicago), e.g. "2026-11-02T23:00"
-  const nowLocal = new Date().toLocaleString('sv-SE', { timeZone: 'America/Chicago' }).replace(' ', 'T').slice(0, 13);
+  // Open-Meteo hourly times are local to the place, e.g. "2026-11-02T23:00"
+  const nowLocal = local.slice(0, 13);
   let hi = (h.time || []).findIndex((t) => t.slice(0, 13) >= nowLocal);
   if (hi < 0) hi = (h.time || []).length;
   const soilT = mean(h.soil_temperature_6cm || [], hi - 24, hi);
@@ -252,7 +254,9 @@ function summarizeWeather(w) {
     lat: w.latitude,
     lng: w.longitude,
     rain14: sum(d.precipitation_sum, ti - 14, ti + 1),
-    rainLag: sum(d.precipitation_sum, ti - 10, ti - 1), // rain 2–10 days ago: what's fruiting now
+    // rain that drives what's fruiting now (2-10 days ago in MN, 3-24 days in SoCal)
+    rainLag: sum(d.precipitation_sum, ti - region().rain.to, ti - region().rain.from + 1),
+    rain30: sum(d.precipitation_sum, ti - 30, ti + 1),
     rain3: sum(d.precipitation_sum, ti - 2, ti + 1),
     rainNext7: sum(d.precipitation_sum, ti + 1, ti + 8),
     high7: mean(d.temperature_2m_max, ti - 6, ti + 1),
@@ -376,18 +380,20 @@ export function parseTrails(j) {
 }
 
 // Trails and parking precomputed from OpenStreetMap by the data build (data/trails)
-let trailMetaP = null;
+const trailMetaP = {};
 const trailTiles = new Map();
 function trailMeta() {
-  if (!trailMetaP) trailMetaP = fetch('data/trails/meta.json').then((r) => (r.ok ? r.json() : null)).catch(() => null);
-  return trailMetaP;
+  const dir = region().trails;
+  if (!trailMetaP[dir]) trailMetaP[dir] = fetch(dir + '/meta.json', { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  return trailMetaP[dir];
 }
 export async function trailTileUrls(s, w, n, e) {
   const m = await trailMeta();
   if (!m) return [];
-  const urls = ['data/trails/meta.json'];
+  const dir = region().trails;
+  const urls = [dir + '/meta.json'];
   for (let i = Math.floor((s - m.south) / m.size); i <= Math.floor((n - m.south) / m.size); i++)
-    for (let j = Math.floor((w - m.west) / m.size); j <= Math.floor((e - m.west) / m.size); j++) urls.push(`data/trails/${i}_${j}.json?v=${m.version || m.built}`);
+    for (let j = Math.floor((w - m.west) / m.size); j <= Math.floor((e - m.west) / m.size); j++) urls.push(`${dir}/${i}_${j}.json?v=${m.version || m.built}`);
   return urls;
 }
 // Returns { trails, parking } or null when the precomputed tiles don't exist

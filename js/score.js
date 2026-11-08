@@ -1,4 +1,5 @@
 import { SPECIES } from './species.js';
+import { region } from './config.js';
 
 const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
 
@@ -11,6 +12,7 @@ function doy(mmdd, year) {
 // are out looking that week). Set by the app once data/model.json loads.
 const LOCAL_SEASON = {};
 export function setLocalSeasons(model) {
+  for (const k of Object.keys(LOCAL_SEASON)) delete LOCAL_SEASON[k];
   for (const [k, e] of Object.entries((model && model.species) || {})) if (e.season) LOCAL_SEASON[k] = e.season;
 }
 export function hasLocalSeason(key) {
@@ -53,7 +55,7 @@ export function tempFit(sp, high7) {
 }
 
 export function wetness(w) {
-  const rainPart = clamp(w.rainLag / 0.9);
+  const rainPart = clamp(w.rainLag / region().rain.full);
   const soilPart = isFinite(w.soilM) ? clamp((w.soilM - 0.12) / 0.2) : rainPart;
   return clamp(0.15 + 0.85 * (0.6 * rainPart + 0.4 * soilPart));
 }
@@ -120,7 +122,7 @@ export function dayWeather(w, i) {
   const sum = (a, b) => d.slice(Math.max(0, a), Math.max(0, b)).reduce((s, x) => s + (x.rain || 0), 0);
   const mean = (a, b, f) => { const s = d.slice(Math.max(0, a), b).map(f).filter((v) => v != null); return s.length ? s.reduce((x, y) => x + y, 0) / s.length : NaN; };
   return {
-    rainLag: sum(i - 10, i - 1),
+    rainLag: sum(i - region().rain.to, i - region().rain.from + 1),
     high7: mean(i - 6, i + 1, (x) => x.hi),
     low7: mean(i - 6, i + 1, (x) => x.lo),
     minLow3: Math.min(...d.slice(Math.max(0, i - 2), i + 1).map((x) => x.lo).filter((v) => v != null)),

@@ -1,10 +1,36 @@
+// Regions with their own habitat data, mushrooms, seasons and rules.
+// box: area covered by the detailed habitat grid. rain: which past days count toward
+// "wet enough" (from/to days ago) and how many inches count as fully wet.
+export const REGIONS = {
+  mn: {
+    id: 'mn', name: 'Minnesota (Twin Cities)', state: 'MN', tz: 'America/Chicago',
+    center: [44.98, -93.27], zoom: 9, box: [[43.5, -95.6], [46.6, -91.0]],
+    grid: 'data/grid', model: 'data/model.json', trails: 'data/trails',
+    rain: { from: 2, to: 10, full: 0.9 },
+    club: { name: 'Minnesota Mycological Society', url: 'https://www.minnesotamushrooms.org/' },
+    rulesChecked: 'November 2026',
+  },
+  socal: {
+    id: 'socal', name: 'Southern California (LA)', state: 'CA', tz: 'America/Los_Angeles',
+    center: [34.15, -118.3], zoom: 9, box: [[32.5, -120.7], [35.2, -116.0]],
+    grid: 'data/grid-socal', model: 'data/model-socal.json', trails: 'data/trails-socal',
+    // fruiting follows soaking winter rains by a few weeks
+    rain: { from: 3, to: 24, full: 1.5 },
+    club: { name: 'Los Angeles Mycological Society', url: 'https://lamushrooms.org/' },
+    rulesChecked: 'November 2026',
+  },
+};
+export const ACTIVE = { region: 'mn' };
+export const region = () => REGIONS[ACTIVE.region];
+export function regionAt(lat, lng) {
+  for (const r of Object.values(REGIONS)) {
+    if (lat >= r.box[0][0] && lat <= r.box[1][0] && lng >= r.box[0][1] && lng <= r.box[1][1]) return r.id;
+  }
+  return null;
+}
+
 // All live data sources. Every one is called directly from the browser.
 export const CFG = {
-  // Start view: Twin Cities, zoomed to show ~2 hr radius
-  center: [44.98, -93.27],
-  zoom: 9,
-  // Rough 2-hour drive box around the Twin Cities (used to keep scans in range)
-  bounds: [[43.6, -95.6], [46.5, -91.2]],
 
   // USFS FIA Forest Atlas: live basal area (sq ft/acre) by tree species, 250 m.
   // A mosaic of one raster per species, named by FIA species code (s802 = white oak).

@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Mushroom Finder</title>
-  <meta name="description" content="Find promising places to look for oyster, hen-of-the-woods and chicken-of-the-woods mushrooms around the Twin Cities, using forest, weather and public land data." />
+  <meta name="description" content="Find promising places to look for wild edible mushrooms around the Twin Cities and in Southern California, using forest, weather and public land data." />
   <meta name="theme-color" content="#2f4a2c" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><path d='M6 30C6 16 18 6 32 6s26 10 26 24c0 2-2 3-4 3H10c-2 0-4-1-4-3z' fill='%23c8742c'/><path d='M24 33h16l-2 22c0 2-2 3-6 3s-6-1-6-3z' fill='%23efe4cf'/></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -33,7 +33,7 @@
 
   <div class="species-pop" id="speciesPop" hidden>
     <div class="sp-pop-head">
-      <h3>Mushrooms to look for</h3>
+      <h3>Mushrooms to look for <span class="muted" id="spRegion"></span></h3>
       <button class="btn primary" id="speciesDone" type="button">Done</button>
     </div>
     <div class="chips wrap" id="speciesChips" role="group" aria-label="Mushrooms to look for"></div>
@@ -57,6 +57,9 @@
         <select id="lyrForest">
           <option value="">None</option>
         </select>
+      </label>
+      <label class="sel">Area
+        <select id="lyrRegion"></select>
       </label>
       <label class="sel">Base map
         <select id="lyrBase"></select>
@@ -93,7 +96,7 @@
         <li>Picking rules change. Check the land manager's current rules on site.</li>
         <li>Areas outside mapped public land are treated as private. Get permission first.</li>
       </ul>
-      <p class="muted">The <a href="https://www.minnesotamushrooms.org/" target="_blank" rel="noopener">Minnesota Mycological Society</a> runs forays and ID sessions.</p>
+      <p class="muted" id="clubLine"></p>
       <button value="ok" class="btn primary">Got it</button>
     </form>
   </dialog>
@@ -103,6 +106,7 @@
   <dialog id="aboutDlg">
     <form method="dialog">
       <h2>How this works</h2>
+      <p>The map covers two areas in detail: <strong>Minnesota</strong> (about two hours around the Twin Cities) and <strong>Southern California</strong> (Santa Barbara to San Diego, coast to the San Jacintos). Each has its own mushrooms, seasons and picking rules. Switch areas under the layers button, or just move the map there.</p>
       <p><strong>Habitat</strong> uses a detailed grid (~140 m cells) built from USFS TreeMap 2023 (every host tree group, big oaks and standing dead trees), NLCD land cover, USGS terrain (bottomlands, slopes, north/south faces), and USFS aerial surveys of tree die-off and NIFC fire maps. Where enough local iNaturalist records exist, a model trained on where each mushroom has actually been found (compared with where people look for fungi in general) is blended in.</p>
       <p><strong>Timing</strong> uses local season curves from iNaturalist records (adjusted for how many people are out looking each week), last week's temperatures, rain from 2–10 days ago and soil moisture. If someone logged it within about 40 miles in the past two weeks, timing gets a boost. The 7-day strip uses the forecast.</p>
       <p><strong>Access</strong> comes from PAD-US public lands, translated into picking rules. <span id="rulesChecked"></span></p>

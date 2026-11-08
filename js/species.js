@@ -3,7 +3,9 @@
 // Season is a trapezoid over day-of-year: [start, rampedUp, rampDown, end] as 'MM-DD'.
 // Temperature fit uses the last 7 days of daily highs/lows (°F).
 
-export const SPECIES = {
+// BASE holds every mushroom as described for Minnesota. Regions pick which ones apply and
+// override hosts, seasons, temperatures and habitat weights (see REGION_SPECIES below).
+const BASE = {
   oyster: {
     name: 'Oysters',
     latin: 'Pleurotus spp.',
@@ -326,10 +328,155 @@ const GRID = {
   velvetfoot: { hosts: { elm: 1, cottonwood: 1, willow: 1, aspen: 0.7 }, hostScale: 20, floor: 0.25,
     dead: { dead_elmash: 1, dead_hw: 0.6, dmg_elmash: 0.5 }, terrain: { valley: 0.8 } },
 };
-for (const [k, g] of Object.entries(GRID)) SPECIES[k].g = g;
+for (const [k, g] of Object.entries(GRID)) BASE[k].g = g;
+
+// ---------- Southern California ----------
+// Mushroom season there follows the winter rains (roughly November-April), not fall.
+// Live oaks are evergreen, so NLCD often maps oak woodland as "evergreen" (conifer key) or shrub.
+const SC_COOL = { minHigh: 45, idealLow: 52, idealHigh: 72, maxHigh: 85 };
+
+BASE.candycap = {
+  name: 'Candy caps',
+  latin: 'Lactarius rubidus & L. rufulus',
+  color: '#a0522d',
+  inatTaxa: [{ q: 'Lactarius rubidus', rank: 'species' }, { q: 'Lactarius rufulus', rank: 'species' }],
+  hosts: 'Under coast live oak and in mixed oak-pine woods, often in moss or leaf litter on shady slopes. Smells of maple syrup once dried.',
+  season: 'December through March, after rains.',
+  caution: 'Several small orange-brown milk caps are toxic or bitter. Candy caps have thin, watery, whey-like milk (not white) and smell of maple syrup when dried. Get an expert ID before eating.',
+  lc: { conifer: 1.0, decid: 1.0, mixed: 1.0, shrub: 0.3, wetwood: 0.4 },
+  hostTrees: {}, hostScale: 1, hostFloor: 1,
+  seasons: [{ start: '11-15', full: '12-20', fade: '03-01', end: '04-01', peak: 1.0 }],
+  temp: SC_COOL,
+  g: { hosts: { oak: 1, pine: 0.3 }, hostScale: 30, floor: 0.15, dead: {}, terrain: { north: 0.4, slope: 0.3 } },
+};
+
+BASE.blewit = {
+  name: 'Blewits',
+  latin: 'Collybia nuda (Lepista nuda)',
+  color: '#7b68ae',
+  inatTaxa: [{ q: 'Collybia nuda', rank: 'species' }],
+  hosts: 'On the ground in leaf litter, compost, mulch and wood chips: under oaks, and in parks and gardens. Often in rings or arcs.',
+  season: 'November through March, after rains.',
+  caution: 'Some purple Cortinarius look alike and can be dangerous. Blewits leave a pinkish-buff spore print (Cortinarius is rusty brown) and have no cobweb veil. Always cook blewits.',
+  lc: { decid: 1.0, conifer: 0.8, mixed: 1.0, devopen: 0.8, shrub: 0.4, grass: 0.3, wetwood: 0.5 },
+  hostTrees: {}, hostScale: 1, hostFloor: 1,
+  seasons: [{ start: '11-01', full: '12-01', fade: '02-28', end: '04-10', peak: 1.0 }],
+  temp: SC_COOL,
+  g: { hosts: { oak: 0.8, eucalyptus: 0.3, sycamore: 0.3 }, hostScale: 30, floor: 0.5, dead: {}, terrain: {} },
+};
+
+const SOCAL = {
+  chicken: {
+    hosts: 'Eucalyptus and oaks, plus other hardwoods: shelves on trunks, stumps and roots. Common in parks and canyons with eucalyptus.',
+    season: 'Fall through winter, after the first rains (roughly October to March).',
+    caution: 'The common SoCal species (L. gilbertsonii), especially from eucalyptus, upsets many people\'s stomachs. Cook thoroughly and try a small amount first.',
+    lc: { decid: 1.0, conifer: 0.8, mixed: 1.0, wetwood: 0.6, shrub: 0.25, devopen: 0.4 },
+    seasons: [{ start: '09-20', full: '11-01', fade: '02-28', end: '04-15', peak: 1.0 }],
+    temp: { minHigh: 50, idealLow: 58, idealHigh: 82, maxHigh: 95 },
+    freezeKill: null,
+    g: { hosts: { oak: 1, eucalyptus: 1.2, sycamore: 0.4, cottonwood: 0.3 }, hostScale: 30, floor: 0.25, dead: { dead_hw: 0.6, dmg_oak: 0.4 }, terrain: { valley: 0.3 } },
+  },
+  morel: {
+    hosts: 'In the mountains, burned conifer forest the spring after a fire (Jeffrey and ponderosa pine, fir). In town, disturbed ground and wood-chip landscaping.',
+    season: 'April through June at elevation (about 5,000-8,000 ft); earlier in town.',
+    lc: { conifer: 1.0, mixed: 0.8, decid: 0.5, shrub: 0.3, devopen: 0.3 },
+    seasons: [{ start: '03-15', full: '04-20', fade: '06-10', end: '07-05', peak: 1.0 }],
+    g: { hosts: { pine: 1, sprucefir: 1, douglasfir: 0.8, oak: 0.3, cottonwood: 0.4 }, hostScale: 30, floor: 0.15, dead: { burn: 1.5, dead_hw: 0.3 }, terrain: {} },
+  },
+  shaggymane: {
+    season: 'November through March after rains, on lawns, roadsides and park edges.',
+    seasons: [{ start: '10-25', full: '11-20', fade: '03-01', end: '04-01', peak: 1.0 }],
+    temp: SC_COOL,
+  },
+  honey: {
+    hosts: 'Clusters at the base of oaks and other hardwoods, and on stumps and roots. Armillaria is a major root disease of California oaks.',
+    season: 'November through February, after rains.',
+    lc: { conifer: 0.9, decid: 1.0, mixed: 1.0, wetwood: 0.6, shrub: 0.2, devopen: 0.3 },
+    seasons: [{ start: '10-25', full: '11-20', fade: '02-15', end: '03-20', peak: 1.0 }],
+    temp: SC_COOL,
+    freezeKill: null,
+    g: { hosts: { oak: 1, sycamore: 0.4, cottonwood: 0.4, eucalyptus: 0.2 }, hostScale: 30, floor: 0.3, dead: { dead_hw: 1, dmg_oak: 0.5 }, terrain: {} },
+  },
+  lionsmane: {
+    hosts: 'Wounds and dead wood of oaks, especially coast live oak, in canyons and older woodland.',
+    season: 'December through March.',
+    lc: { conifer: 1.0, decid: 1.0, mixed: 1.0, wetwood: 0.5, shrub: 0.15 },
+    seasons: [{ start: '11-15', full: '12-15', fade: '03-01', end: '04-01', peak: 1.0 }],
+    temp: SC_COOL,
+    freezeKill: null,
+    g: { hosts: { oak: 1, sycamore: 0.3 }, hostScale: 30, floor: 0.15, dead: { dead_hw: 1, dmg_oak: 0.5 }, terrain: { valley: 0.3 } },
+  },
+  oyster: {
+    hosts: 'Dead and dying cottonwood, willow, sycamore and alder along streams, plus other hardwoods.',
+    season: 'Winter and spring after rains (December to April).',
+    caution: 'Check for a white to lilac spore print, gills running down the stem, and growth on hardwood. Other white shelf fungi look similar.',
+    lc: { decid: 1.0, wetwood: 1.0, mixed: 0.8, conifer: 0.6, shrub: 0.15 },
+    seasons: [{ start: '11-15', full: '12-20', fade: '04-01', end: '05-15', peak: 1.0 }],
+    temp: { minHigh: 45, idealLow: 52, idealHigh: 75, maxHigh: 88 },
+    g: { hosts: { cottonwood: 1, willow: 1, sycamore: 0.8, alder: 0.8, oak: 0.3 }, hostScale: 30, floor: 0.2, dead: { dead_hw: 1, dmg_storm: 0.5 }, terrain: { valley: 0.8 } },
+  },
+  puffball: {
+    name: 'Western giant puffball',
+    latin: 'Calvatia booniana',
+    inatTaxa: [{ q: 'Calvatia booniana', rank: 'species' }, { q: 'Calvatia gigantea', rank: 'species' }],
+    hosts: 'Open, dry ground: grassland, sage and scrub edges, meadows and park lawns, often in the mountains and high desert edge.',
+    season: 'Spring through summer, after rain or summer thunderstorms.',
+    lc: { grass: 1.0, shrub: 0.9, pasture: 0.7, devopen: 0.6, decid: 0.1 },
+    seasons: [{ start: '04-01', full: '05-15', fade: '09-15', end: '10-31', peak: 1.0 }],
+    temp: { minHigh: 60, idealLow: 70, idealHigh: 92, maxHigh: 102 },
+  },
+  chanterelle: {
+    latin: 'Cantharellus californicus & relatives',
+    hosts: 'Under coast live oak and other oaks, often in canyons, on north slopes and in older oak woodland. The California chanterelle can grow huge.',
+    season: 'January through March, a few weeks after soaking winter rains.',
+    caution: 'Western jack-o\'-lanterns (toxic) are common under California oaks: orange, in clusters on wood or buried roots, with true sharp gills. Chanterelles have blunt, forked ridges and grow singly from soil.',
+    lc: { conifer: 1.0, decid: 1.0, mixed: 1.0, shrub: 0.25, wetwood: 0.4 },
+    seasons: [{ start: '12-01', full: '01-01', fade: '03-15', end: '04-15', peak: 1.0 }],
+    temp: SC_COOL,
+    g: { hosts: { oak: 1, bigoak: 0.5 }, hostScale: 30, floor: 0.15, dead: {}, terrain: { north: 0.4, slope: 0.3, valley: 0.2 } },
+  },
+  bolete: {
+    name: 'White king bolete',
+    latin: 'Boletus barrowsii & B. edulis',
+    inatTaxa: [{ q: 'Boletus barrowsii', rank: 'species' }, { q: 'Boletus edulis', rank: 'species' }, { q: 'Boletus regineus', rank: 'species' }],
+    hosts: 'Under oaks and pines in the mountains (San Gabriels, San Bernardinos, San Jacintos, Cuyamacas), and sometimes in coastal oak woodland.',
+    season: 'After summer thunderstorms in the mountains (July to September), and after winter rains near the coast.',
+    lc: { conifer: 1.0, mixed: 1.0, decid: 0.7, shrub: 0.2 },
+    seasons: [
+      { start: '07-01', full: '07-25', fade: '09-30', end: '11-01', peak: 1.0 },
+      { start: '12-01', full: '01-01', fade: '02-28', end: '03-31', peak: 0.5 },
+    ],
+    temp: { minHigh: 50, idealLow: 60, idealHigh: 85, maxHigh: 95 },
+    g: { hosts: { pine: 1, oak: 0.8, sprucefir: 0.5, douglasfir: 0.5 }, hostScale: 30, floor: 0.2, dead: {}, terrain: {} },
+  },
+};
+
+// Which mushrooms each region shows, in picker order
+const REGION_SPECIES = {
+  mn: ['oyster', 'hen', 'chicken', 'beefsteak', 'morel', 'chanterelle', 'trumpet', 'bolete', 'lobster', 'hedgehog',
+    'lionsmane', 'cauliflower', 'puffball', 'shaggymane', 'honey', 'velvetfoot'],
+  socal: ['chanterelle', 'candycap', 'blewit', 'chicken', 'oyster', 'honey', 'lionsmane', 'shaggymane', 'morel',
+    'bolete', 'puffball'],
+};
+const OVERRIDES = { mn: {}, socal: SOCAL };
+
+// The active region's mushrooms. A live object: useRegion() refills it in place, so every module
+// that imported SPECIES sees the change.
+export const SPECIES = {};
+export function useRegion(region) {
+  for (const k of Object.keys(SPECIES)) delete SPECIES[k];
+  const o = OVERRIDES[region] || {};
+  for (const k of REGION_SPECIES[region] || REGION_SPECIES.mn) {
+    const b = BASE[k];
+    const v = o[k] || {};
+    SPECIES[k] = { ...b, ...v, g: v.g ? { ...b.g, ...v.g } : b.g };
+  }
+}
+useRegion('mn');
 
 // Readable names for grid bands
 export const GRID_TREES = {
-  oak: 'Oaks (red, bur, white, pin)', maple: 'Maples & boxelder', aspen: 'Aspen & poplar', cottonwood: 'Cottonwood',
+  oak: 'Oaks', maple: 'Maples & boxelder', aspen: 'Aspen & poplar', cottonwood: 'Cottonwood',
   birch: 'Birch', elm: 'Elm', ash: 'Ash', basswood: 'Basswood', willow: 'Willow', pine: 'Pine', sprucefir: 'Spruce & fir',
+  sycamore: 'Sycamore', alder: 'Alder', eucalyptus: 'Eucalyptus', douglasfir: 'Bigcone Douglas-fir',
 };
