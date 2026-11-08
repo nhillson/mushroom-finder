@@ -23,16 +23,53 @@ import zipfile
 import numpy as np
 import requests
 
-# ---------------------------------------------------------------- grid layout
-WEST, SOUTH, EAST, NORTH = -95.6, 43.5, -91.0, 46.6
-DLAT, DLNG = 0.00125, 0.00175          # ~139 m x ~138 m at 45N
-ROWS = int(round((NORTH - SOUTH) / DLAT))  # 2480
-COLS = int(round((EAST - WEST) / DLNG))    # 2629
+# ---------------------------------------------------------------- regions
+# Run once per region: REGION=mn (default) or REGION=socal. Each region has its own grid,
+# sightings model, trails and report. MN keeps its original paths and cache keys.
+TAXA_MN = {
+    'oyster': [('Pleurotus', 'genus')], 'hen': [('Grifola frondosa', 'species')], 'chicken': [('Laetiporus', 'genus')],
+    'beefsteak': [('Fistulina hepatica', 'species')],
+    'morel': [('Morchella', 'genus')], 'chanterelle': [('Cantharellus', 'genus')],
+    'trumpet': [('Craterellus fallax', 'species'), ('Craterellus cornucopioides', 'species')],
+    'bolete': [('Boletus edulis', 'species'), ('Boletus chippewaensis', 'species'), ('Boletus variipes', 'species')],
+    'lobster': [('Hypomyces lactifluorum', 'species')], 'hedgehog': [('Hydnum', 'genus')],
+    'lionsmane': [('Hericium', 'genus')], 'cauliflower': [('Sparassis', 'genus')],
+    'puffball': [('Calvatia gigantea', 'species')], 'shaggymane': [('Coprinus comatus', 'species')],
+    'honey': [('Armillaria', 'genus')], 'velvetfoot': [('Flammulina', 'genus')],
+}
+TAXA_SOCAL = {
+    'chicken': [('Laetiporus', 'genus')], 'blewit': [('Collybia nuda', 'species')], 'morel': [('Morchella', 'genus')],
+    'shaggymane': [('Coprinus comatus', 'species')], 'honey': [('Armillaria', 'genus')],
+    'candycap': [('Lactarius rubidus', 'species'), ('Lactarius rufulus', 'species')],
+    'lionsmane': [('Hericium', 'genus')], 'oyster': [('Pleurotus', 'genus')],
+    'puffball': [('Calvatia booniana', 'species'), ('Calvatia gigantea', 'species')],
+    'chanterelle': [('Cantharellus', 'genus')],
+    'bolete': [('Boletus barrowsii', 'species'), ('Boletus edulis', 'species'), ('Boletus regineus', 'species')],
+}
+REGIONS = {
+    'mn': dict(box=(-95.6, 43.5, -91.0, 46.6), dlat=0.00125, dlng=0.00175,
+               grid='data/grid', model='data/model.json', trails='data/trails', report='data/build-report.txt',
+               cache_prefix='', taxa=TAXA_MN,
+               geofabrik=['https://download.geofabrik.de/north-america/us/minnesota-latest.osm.pbf',
+                          'https://download.geofabrik.de/north-america/us/wisconsin-latest.osm.pbf']),
+    # Santa Barbara / Los Padres to San Diego / Cuyamaca, coast to the San Jacintos
+    'socal': dict(box=(-120.7, 32.5, -116.0, 35.2), dlat=0.00125, dlng=0.0015,
+                  grid='data/grid-socal', model='data/model-socal.json', trails='data/trails-socal',
+                  report='data/build-report-socal.txt', cache_prefix='socal_', taxa=TAXA_SOCAL,
+                  geofabrik=['https://download.geofabrik.de/north-america/us/california/socal-latest.osm.pbf']),
+}
+REGION = os.environ.get('REGION', 'mn')
+R = REGIONS[REGION]
+WEST, SOUTH, EAST, NORTH = R['box']
+DLAT, DLNG = R['dlat'], R['dlng']          # ~139 m cells
+ROWS = int(round((NORTH - SOUTH) / DLAT))
+COLS = int(round((EAST - WEST) / DLNG))
+OUT_GRID, OUT_MODEL, OUT_TRAILS, OUT_REPORT = R['grid'], R['model'], R['trails'], R['report']
 TILE = 256
 WORK = os.environ.get('WORK', '/mnt/work')
 UA = {'User-Agent': 'mushroom-finder-data-pipeline (github.com/nhillson/mushroom-finder)'}
 os.makedirs(WORK, exist_ok=True)
-os.makedirs('data/grid', exist_ok=True)
+os.makedirs(OUT_GRID, exist_ok=True)
 
 CACHE = os.environ.get('BAND_CACHE', os.path.expanduser('~/band-cache'))
 os.makedirs(CACHE, exist_ok=True)
@@ -72,7 +109,7 @@ def add_band(name, arr, scale, offset=0.0, unit=''):
 
 def cached(key):
     """Load bands saved by an earlier run (heavy steps are cached between GitHub runs)."""
-    fn = os.path.join(CACHE, key + '.npz')
+    fn = os.path.join(CACHE, R['cache_prefix'] + key + '.npz')
     if not os.path.exists(fn):
         return False
     z = np.load(fn, allow_pickle=True)
@@ -86,7 +123,7 @@ def cached(key):
 
 
 def save_cache(key, names):
-    fn = os.path.join(CACHE, key + '.npz')
+    fn = os.path.join(CACHE, R['cache_prefix'] + key + '.npz')
     np.savez_compressed(fn, _scales=np.array({n: SCALES[n] for n in names}, dtype=object),
                         **{n: BANDS[n].astype(np.float16) for n in names})
     log(f'cached {names} -> {key}')
@@ -104,8 +141,12 @@ TREEMAP_URL = 'https://usfs-public.box.com/shared/static/xlaazfhic3ugd1yetoxcicj
 SP_GROUPS = {
     'oak': lambda c: (800 <= c) & (c <= 842),
     'maple': lambda c: (310 <= c) & (c <= 319),
-    'aspen': lambda c: np.isin(c, [741, 743, 744, 746, 747]),
-    'cottonwood': lambda c: c == 742,
+    'aspen': lambda c: np.isin(c, [741, 743, 744, 746]),
+    'cottonwood': lambda c: np.isin(c, [742, 745, 747, 748, 749]),
+    'sycamore': lambda c: (730 <= c) & (c <= 732),
+    'alder': lambda c: (350 <= c) & (c <= 355),
+    'eucalyptus': lambda c: (510 <= c) & (c <= 514),
+    'douglasfir': lambda c: (200 <= c) & (c <= 202),
     'birch': lambda c: (370 <= c) & (c <= 379),
     'elm': lambda c: (970 <= c) & (c <= 977),
     'ash': lambda c: (540 <= c) & (c <= 549),
@@ -432,17 +473,7 @@ def disturbance_fire():
 
 # ---------------------------------------------------------------- iNaturalist: seasons + habitat models
 INAT = 'https://api.inaturalist.org/v1'
-TAXA = {
-    'oyster': [('Pleurotus', 'genus')], 'hen': [('Grifola frondosa', 'species')], 'chicken': [('Laetiporus', 'genus')],
-    'beefsteak': [('Fistulina hepatica', 'species')],
-    'morel': [('Morchella', 'genus')], 'chanterelle': [('Cantharellus', 'genus')],
-    'trumpet': [('Craterellus fallax', 'species'), ('Craterellus cornucopioides', 'species')],
-    'bolete': [('Boletus edulis', 'species'), ('Boletus chippewaensis', 'species'), ('Boletus variipes', 'species')],
-    'lobster': [('Hypomyces lactifluorum', 'species')], 'hedgehog': [('Hydnum', 'genus')],
-    'lionsmane': [('Hericium', 'genus')], 'cauliflower': [('Sparassis', 'genus')],
-    'puffball': [('Calvatia gigantea', 'species')], 'shaggymane': [('Coprinus comatus', 'species')],
-    'honey': [('Armillaria', 'genus')], 'velvetfoot': [('Flammulina', 'genus')],
-}
+TAXA = R['taxa']
 BG_TAXON = 47170  # Fungi
 
 
@@ -569,13 +600,12 @@ def inat_models():
         else:
             log(f'{k}: n={len(pts)} precise={len(pos)} (too few for a model)')
         model['species'][k] = entry
-    with open('data/model.json', 'w') as f:
+    with open(OUT_MODEL, 'w') as f:
         json.dump(model, f, separators=(',', ':'))
 
 
 # ---------------------------------------------------------------- trails & parking (OpenStreetMap)
-GEOFABRIK = ['https://download.geofabrik.de/north-america/us/minnesota-latest.osm.pbf',
-             'https://download.geofabrik.de/north-america/us/wisconsin-latest.osm.pbf']
+GEOFABRIK = R['geofabrik']
 TRAIL_TILE = 0.1  # degrees
 
 
@@ -588,7 +618,7 @@ def trails():
     from rasterio.transform import from_origin
     from scipy.ndimage import binary_dilation
 
-    out_dir = 'data/trails'
+    out_dir = OUT_TRAILS
     if os.path.isdir(out_dir):
         shutil.rmtree(out_dir)
     os.makedirs(out_dir)
@@ -596,6 +626,21 @@ def trails():
     ROAD_TAGS = ('motorway,motorway_link,trunk,trunk_link,primary,primary_link,secondary,secondary_link,'
                  'tertiary,tertiary_link,unclassified,residential,living_street,service,road')
     trails_raw, roads, parking_raw = [], [], []
+    # road mask on a ~20 m grid, built in batches so big metro areas don't run out of memory
+    RLAT, RLNG = 0.00018, 0.00025
+    rr, rc = int(round((NORTH - SOUTH) / RLAT)), int(round((EAST - WEST) / RLNG))
+    mask = np.zeros((rr, rc), dtype=bool)
+    n_roads = 0
+
+    def flush_roads():
+        nonlocal n_roads
+        if roads:
+            m = rz(((g, 1) for g in roads), out_shape=(rr, rc), transform=from_origin(WEST, NORTH, RLNG, RLAT),
+                   fill=0, all_touched=True, dtype='uint8')
+            np.logical_or(mask, m.astype(bool), out=mask)
+            n_roads += len(roads)
+            roads.clear()
+
     for url in GEOFABRIK:
         pbf = os.path.join(WORK, os.path.basename(url))
         clip = pbf + '.clip.pbf'
@@ -621,17 +666,14 @@ def trails():
                     trails_raw.append((p, g['coordinates']))
                 elif hw and g.get('type') == 'LineString':
                     roads.append(g)
+                    if len(roads) >= 150000:
+                        flush_roads()
         for fn in (pbf, clip, flt, seq):
             if os.path.exists(fn):
                 os.remove(fn)
-    log(f'raw: {len(trails_raw)} trail ways, {len(roads)} roads, {len(parking_raw)} parking')
+    flush_roads()
+    log(f'raw: {len(trails_raw)} trail ways, {n_roads} roads, {len(parking_raw)} parking')
 
-    # road mask on a ~20 m grid, widened by one cell on each side (~30 m from the centerline)
-    RLAT, RLNG = 0.00018, 0.00025
-    rr, rc = int(round((NORTH - SOUTH) / RLAT)), int(round((EAST - WEST) / RLNG))
-    mask = rz(((g, 1) for g in roads), out_shape=(rr, rc), transform=from_origin(WEST, NORTH, RLNG, RLAT),
-              fill=0, all_touched=True, dtype='uint8').astype(bool)
-    del roads
     mask = binary_dilation(mask, iterations=1)
     log(f'road mask {rr}x{rc}, {mask.mean() * 100:.1f}% of cells near a road')
 
@@ -746,9 +788,9 @@ def write_tiles():
         s = SCALES[n]
         q[n] = np.clip(np.round(BANDS[n] * s['scale'] + s['offset']), 0, 255).astype(np.uint8)
     # clear old tiles
-    for fn in os.listdir('data/grid'):
+    for fn in os.listdir(OUT_GRID):
         if fn.endswith('.bin.gz'):
-            os.remove(os.path.join('data/grid', fn))
+            os.remove(os.path.join(OUT_GRID, fn))
     total = 0
     for ty in range(tr):
         for tx in range(tc):
@@ -761,12 +803,12 @@ def write_tiles():
                 continue
             data = gzip.compress(buf.tobytes(), compresslevel=9, mtime=0)
             total += len(data)
-            with open(f'data/grid/{ty}_{tx}.bin.gz', 'wb') as f:
+            with open(f'{OUT_GRID}/{ty}_{tx}.bin.gz', 'wb') as f:
                 f.write(data)
     meta = {'west': WEST, 'south': SOUTH, 'east': EAST, 'north': NORTH, 'dlat': DLAT, 'dlng': DLNG,
             'rows': ROWS, 'cols': COLS, 'tile': TILE, 'bands': names, 'scales': SCALES,
             'built': time.strftime('%Y-%m-%d'), 'version': int(time.time())}
-    with open('data/grid/meta.json', 'w') as f:
+    with open(f'{OUT_GRID}/meta.json', 'w') as f:
         json.dump(meta, f, indent=1)
     log(f'tiles written, {total / 1e6:.1f} MB total, bands: {names}')
 
@@ -791,5 +833,5 @@ if __name__ == '__main__':
         write_tiles()
     if want('inat') and BANDS:
         inat_models()
-    with open('data/build-report.txt', 'w') as f:
-        f.write('\n'.join(REPORT))
+    with open(OUT_REPORT, 'w') as f:
+        f.write('\n'.join([f'Region: {REGION}'] + REPORT))

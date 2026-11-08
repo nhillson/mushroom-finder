@@ -1,8 +1,8 @@
 name: Build map data
 
-# Builds data/grid (tree, land cover, terrain, disturbance) and data/model.json (local seasons,
-# sighting-based habitat models). Heavy inputs are cached between runs; sightings and
-# disturbance refresh every week.
+# Builds, for each region (Minnesota, Southern California), a habitat grid (tree, land cover,
+# terrain, disturbance), a sightings model (local seasons, habitat models) and trails.
+# Heavy inputs are cached between runs; sightings, disturbance and trails refresh every week.
 on:
   push:
     branches: [main]
@@ -44,7 +44,9 @@ jobs:
       - name: Build
         env:
           WORK: /mnt/work
-        run: python pipeline/build.py
+        run: |
+          python pipeline/build.py
+          REGION=socal python pipeline/build.py
       - name: Save results
         if: always()
         run: |
