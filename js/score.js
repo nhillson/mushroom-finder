@@ -83,7 +83,8 @@ export function timing(key, w, date = new Date(), recent = null) {
     t *= 0.35;
     notes.push(`Hard freeze recently (${Math.round(w.minLow3)}°F) — late-season flushes are likely done.`);
   }
-  if (recent && recent.days <= 14) {
+  // (puffballs dry out and stay put for weeks, so a recent record doesn't mean they're fruiting)
+  if (recent && recent.days <= 14 && !sp.persistent) {
     // someone just found it nearby: it's fruiting, whatever the calendar says
     // closer and fresher sightings count for more (within ~10 mi and a week: strong evidence)
     const near = recent.km <= 16 ? 1 : recent.km <= 35 ? 0.8 : 0.6;

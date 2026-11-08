@@ -224,6 +224,7 @@ const BASE = {
   },
 
   puffball: {
+    persistent: true,
     name: 'Giant puffball',
     latin: 'Calvatia gigantea',
     color: '#d9d9d9',
