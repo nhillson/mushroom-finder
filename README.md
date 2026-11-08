@@ -1,20 +1,23 @@
 # Mushroom Finder
 
-A map of promising places to look for choice wild mushrooms within about two hours of the Twin Cities:
+A map of promising places to look for choice wild mushrooms in two areas:
 
-morels, chanterelles, black trumpets, king boletes, lobster mushrooms, hedgehogs, hen-of-the-woods, chicken-of-the-woods, beefsteak fungus, oysters, lion's mane and bear's head, cauliflower mushrooms, giant puffballs, shaggy manes, honey mushrooms and velvet foot.
+- **Minnesota** (about two hours around the Twin Cities): morels, chanterelles, black trumpets, king boletes, lobster mushrooms, hedgehogs, hen-of-the-woods, chicken-of-the-woods, beefsteak fungus, oysters, lion's mane and bear's head, cauliflower mushrooms, giant puffballs, shaggy manes, honey mushrooms and velvet foot.
+- **Southern California** (Santa Barbara to San Diego, coast to the San Jacintos): chanterelles, candy caps, blewits, chicken-of-the-woods, oysters, honey mushrooms, lion's mane, shaggy manes, morels, white king boletes and western giant puffballs.
+
+Each area has its own seasons, habitat weights, picking rules and hunting reminders. Open `?region=socal` to start in Southern California; moving the map into an area switches to it.
 
 Live at https://nhillson.github.io/mushroom-finder/
 
 ## Data
 
-**Built weekly by GitHub Actions** (`pipeline/build.py`, `.github/workflows/build-data.yml`) into `data/`:
+**Built weekly by GitHub Actions** (`pipeline/build.py`, `.github/workflows/build-data.yml`), once per area (`REGION=mn` → `data/grid`, `data/model.json`, `data/trails`; `REGION=socal` → `data/grid-socal`, `data/model-socal.json`, `data/trails-socal`):
 
-- **Trees** — USFS TreeMap 2023 (30 m): live basal area for oaks, big oaks, maples, aspen, cottonwood, birch, elm, ash, basswood, willow, pine, spruce/fir, plus standing dead hardwoods and dead elm/ash
+- **Trees** — USFS TreeMap 2023 (30 m): live basal area for oaks, big oaks, maples, aspen, cottonwood, birch, elm, ash, basswood, willow, pine, spruce/fir, sycamore, alder, eucalyptus and bigcone Douglas-fir, plus standing dead hardwoods and dead elm/ash
 - **Land cover** — NLCD 2021: deciduous, mixed, evergreen, wooded wetland, grass, pasture, park lawn, shrub
 - **Terrain** — USGS 3DEP: slope, north/south facing, bottomland (valley) index
 - **Disturbance** — USFS aerial insect & disease surveys (elm/ash die-off, oak damage, aspen damage, storm damage) and NIFC fire perimeters
-- **Trails and parking** — OpenStreetMap (Geofabrik extracts for Minnesota and Wisconsin)
+- **Trails and parking** — OpenStreetMap (Geofabrik extracts for Minnesota, Wisconsin and Southern California)
 - **Local seasons and sighting models** — iNaturalist research-grade records in the region. Seasons are measured against how many people log fungi each week. Habitat models compare where each mushroom was found with where people look for fungi in general, and are used only when they pass spatial cross-validation (AUC ≥ 0.6).
 
 All of that is stored as a ~140 m lat/lng grid (`data/grid`, gzip tiles) the browser reads directly.
@@ -46,8 +49,9 @@ Overall = √(habitat × timing) × access.
 
 | File | What it holds |
 |---|---|
-| `js/species.js` | Each mushroom's hosts, season, temperature range, grid preferences, look-alike cautions |
-| `js/landrules.js` | Land designation → picking rule table, metro park systems, hunting seasons (edit as rules change) |
+| `js/species.js` | Each mushroom's hosts, season, temperature range, grid preferences, look-alike cautions, and per-area overrides |
+| `js/config.js` | Areas (bounds, data paths, time zone, rain window, local club) and data sources |
+| `js/landrules.js` | Land designation → picking rule tables for Minnesota and California, metro park systems, hunting seasons (edit as rules change) |
 | `js/score.js` | Habitat, timing, outlook and scoring math |
 | `js/grid.js` | Reads the habitat grid and sightings models |
 | `js/data.js` | Live data sources |
