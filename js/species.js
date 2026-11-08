@@ -421,7 +421,7 @@ const SOCAL = {
     inatTaxa: [{ q: 'Calvatia booniana', rank: 'species' }, { q: 'Calvatia gigantea', rank: 'species' }],
     hosts: 'Open, dry ground: grassland, sage and scrub edges, meadows and park lawns, often in the mountains and high desert edge.',
     season: 'Spring through summer, after rain or summer thunderstorms.',
-    lc: { grass: 1.0, shrub: 0.9, pasture: 0.7, devopen: 0.6, decid: 0.1 },
+    lc: { grass: 1.0, shrub: 0.5, pasture: 0.7, devopen: 0.6, decid: 0.1 }, // dense chaparral is poor puffball ground
     seasons: [{ start: '04-01', full: '05-15', fade: '09-15', end: '10-31', peak: 1.0 }],
     temp: { minHigh: 60, idealLow: 70, idealHigh: 92, maxHigh: 102 },
   },
