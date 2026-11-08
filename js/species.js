@@ -385,7 +385,7 @@ const SOCAL = {
   },
   shaggymane: {
     season: 'November through March after rains, on lawns, roadsides and park edges.',
-    lc: { devopen: 1.0, grass: 0.6, pasture: 0.5, shrub: 0.1, decid: 0.15 },
+    lc: { devopen: 1.0, grass: 0.35, pasture: 0.4, shrub: 0.05, decid: 0.15 }, // lawns and disturbed ground, not wild grassland
     seasons: [{ start: '10-25', full: '11-20', fade: '03-01', end: '04-01', peak: 1.0 }],
     temp: SC_COOL,
   },

@@ -171,7 +171,10 @@ export function habitatGrid(key, g, modelSuit = null, modelW = 0.5) {
   for (const [t, w] of Object.entries(p.terrain)) tsum += w * tf[t];
   const terrain = clamp(1 + 0.3 * tsum, 0.6, 1.4);
   let rule = clamp(forest * (p.floor + (1 - p.floor) * host) * terrain + 0.35 * dead * forest);
-  const value = modelSuit == null || !modelW ? rule : clamp((1 - modelW) * rule + modelW * modelSuit);
+  // the sightings model refines within plausible habitat; it can't make poor habitat good
+  // (it extrapolates in places unlike where people usually look, e.g. remote mountains)
+  const ms = modelSuit == null ? null : modelSuit * clamp(rule / 0.35);
+  const value = ms == null || !modelW ? rule : clamp((1 - modelW) * rule + modelW * ms);
   return { value, rule, model: modelSuit, forest, host, dead, terrain, hits, deadHits };
 }
 
