@@ -1,113 +1,19 @@
 Region: socal
 
 ===== TreeMap 2023: download =====
-zip size 5240617359
-               0  Data/
-   5,258,231,492  Data/TreeMap2023_CONUS.tif
-      34,508,337  Data/TreeMap2023_CONUS.tif.vat.dbf
-         255,175  Data/TreeMap2023_CONUS_Data_Dictionary.pdf
-     238,213,485  Data/TreeMap2023_CONUS_Tree_Table.csv
-           4,913  Data/_variable_descriptions.csv
-extracted TreeMap2023_CONUS.tif
-extracted TreeMap2023_CONUS.tif.vat.dbf
-extracted TreeMap2023_CONUS_Tree_Table.csv
-extracted _variable_descriptions.csv
---- variable descriptions:
-﻿Filename ,Variable ,Attribute name,Units ,Description 
-,,,,
-TreeMap2023_CONUS.tif,Value,Value,,Equivalent to ‘TM_ID’ field below; unique identifier for each forest plot
-TreeMap2023_CONUS.tif,TM_ID,TreeMap record number,,TreeMap record number; corresponds to “TM_ID” field in the tree table
-TreeMap2023_CONUS.tif,PLT_CN,Plot sequence number,,Control number for unique TreeMap pixel assignments
-TreeMap2023_CONUS.tif,Count,Count,,Count of pixels having CN in TreeMap
-TreeMap2023_CONUS.tif,FORTYPCD,Algorithm Forest Type Code,,"Forest type code, assigned by FIA algorithm"
-TreeMap2023_CONUS.tif,ForTypName,Algorithm Forest Type Name,,"Forest type description, assigned by FIA algorithm"
-TreeMap2023_CONUS.tif,FLDTYPCD,Field Forest Type Code ,,"Forest type code, assigned by FIA field crew"
-TreeMap2023_CONUS.tif,FldTypName,Field Forest Type Name,,"Forest type description, assigned by FIA field crew"
-TreeMap2023_CONUS.tif,STDSZCD,Algorithm Stand-Size Class Code ,,"Stand size code, assigned by FIA algorithm"
-TreeMap2023_CONUS.tif,FLDSZCD,Field Stand-Size Class Code ,,"Stand size code, assigned by FIA field crew"
-TreeMap2023_CONUS.tif,BALIVE,Live Tree Basal Area,square feet per acre,Live tree basal area (sq ft per acre)
-TreeMap2023_CONUS.tif,ALSTK,All-LiveTree Stocking  ,percent,All live tree stocking (%)
-TreeMap2023_CONUS.tif,GSSTK,Growing-stock Stocking ,percent,Growing-stock stocking (%)
-TreeMap2023_CONUS.tif,QMD,Stand Quadratic Mean Diameter ,inches,Stand quadratic mean diameter (in)
-TreeMap2023_CONUS.tif,SDISum,Sum of Stand Density Index,,Sum of Stand density index
-TreeMap2023_CONUS.tif,TPA_LIVE,Live trees per acre,,Number of live trees per acre
-TreeMap2023_CONUS.tif,TPA_DEAD,Dead trees per acre,,Number of standing dead trees per acre (DIA >5 inches)
-TreeMap2023_CONUS.tif,VOLCFNET_L,"Volume, Live",cubic feet per acre,"Volume, live (cubic feet per acre)"
-TreeMap2023_CONUS.tif,VOLCFNET_D,"Volume, Standing dead",cubic feet per acre,"Volume, standing dead (cubic feet per acre)"
-TreeMap2023_CONUS.tif,VOLBFNET_L,"Volume, Live",sawlog-boardft per acre,"Volume, live, sawlog board feet per acre (log rule: international 1/4 inch)"
-TreeMap2023_CONUS.tif,DRYBIO_L,"Dry Live Tree Biomass, Above Ground ",tons per acre,"Dry live tree biomass, above ground (tons per acre)"
-TreeMap2023_CONUS.tif,DRYBIO_D,"Standing Dead Tree Biomass, Above Ground ",tons per acre,"Dry standing dead tree biomass, above ground (tons per acre)"
-TreeMap2023_CONUS.tif,CARBON_L,"Carbon, live above ground",tons per acre,"Carbon, live above ground (tons per acre)"
-TreeMap2023_CONUS.tif,CARBON_D,"Carbon, standing dead",tons per acre,"Carbon, standing dead (tons per acre)"
-TreeMap2023_CONUS.tif,CARBON_DWN,"Carbon, down dead",tons per acre,"Carbon, down dead (tons per acre)"
-TreeMap2023_CONUS.tif,CANOPYPCT,Live Canopy Cover,percent,Live canopy cover (%)
-TreeMap2023_CONUS.tif,STANDHT,Heigh of Dominant Trees,feet,Height of dominant trees (ft)
-,,,,
-TreeMap2023_CONUS_Tree_Table.csv,TM_ID,TreeMap record number,,TreeMap record number; corresponds to “TM_ID” field in the TreeMap raster
-TreeMap2023_CONUS_Tree_Table.csv,PLT_CN,Plot sequence number,,Control number for unique TreeMap pixel assignments
-TreeMap2023_CONUS_Tree_Table.csv,STATUSCD,Status code,,Code that indicates whether the tree is live (1) or dead (2) when the plot was measured
-TreeMap2023_CONUS_Tree_Table.csv,TPA_UNADJ,Trees per acre unadjusted,,"Number of trees per acre, based on the scale of the plot design"
-TreeMap2023_CONUS_Tree_Table.csv,SPCD,Species code,,Tree species code
-TreeMap2023_CONUS_Tree_Table.csv,COMMON_NAME,Common name,,Common name
-TreeMap2023_CONUS_Tree_Table.csv,SCIENTIFIC_NAME,Scientific name,,Scientific name
-TreeMap2023_CONUS_Tree_Table.csv,SPECIES_SYMBOL,Species symbol,,USDA PLANTS Database code
-TreeMap2023_CONUS_Tree_Table.csv,DIA,Current diameter,inches,"Tree diameter (in), measured at 4.5 feet above ground for timber species and at the ground line for woodland species"
-TreeMap2023_CONUS_Tree_Table.csv,HT,Total height,feet,"Tree’s total height (ft) from the tip of the apical meristem to the ground. The actual height may be different when the main stem is broken, in which case the total height is estimated."
-TreeMap2023_CONUS_Tree_Table.csv,ACTUALHT,Actual height,feet,Height of the tree (ft) from the ground level to the highest point of the tree still present
-TreeMap2023_CONUS_Tree_Table.csv,CR,Compacted crown ratio,,"Compacted crown ratio, or the percent of the bole with healthy foliage"
-TreeMap2023_CONUS_Tree_Table.csv,SUBP,Subplot number,,Subplot number (plots are composed of four subplots)
-TreeMap2023_CONUS_Tree_Table.csv,TREE,Tree number,,"Tree number, which corresponds to a unique identifier on a subplot"
-TreeMap2023_CONUS_Tree_Table.csv,AGENTCD,Cause of death (agent) code,,"Cause of death, including insect, fire, etc. , where applicable"
-
-[ok] TreeMap 2023: download in 66s
+loaded 19 cached bands from treemap_v1
+[ok] TreeMap 2023: download in 1s
 
 ===== TreeMap 2023: tree density bands =====
-raster EPSG:5070 (30.0, 30.0) 154179 97279 nodata -2147483648.0 ('int32',)
-window (13562, 16722) unique ids 2355
-tree table columns: ['TM_ID', 'PLT_CN', 'STATUSCD', 'TPA_UNADJ', 'SPCD', 'COMMON_NAME', 'SCIENTIFIC_NAME', 'SPECIES_SYMBOL', 'DIA', 'HT', 'ACTUALHT', 'CR', 'SUBP', 'TREE', 'AGENTCD']
-tree rows used 57770
-  oak: mean 1.59, p99 41.6, max 213.0
-  maple: mean 0.01, p99 0.2, max 26.3
-  aspen: mean 0.00, p99 0.0, max 28.6
-  cottonwood: mean 0.00, p99 0.0, max 63.6
-  sycamore: mean 0.02, p99 0.3, max 11.4
-  alder: mean 0.00, p99 0.0, max 8.8
-  eucalyptus: mean 0.00, p99 0.0, max 3.3
-  douglasfir: mean 0.09, p99 1.8, max 176.1
-  birch: mean 0.00, p99 0.0, max 0.0
-  elm: mean 0.00, p99 0.0, max 0.0
-  ash: mean 0.00, p99 0.0, max 3.8
-  basswood: mean 0.00, p99 0.0, max 0.0
-  willow: mean 0.00, p99 0.0, max 0.0
-  pine: mean 0.66, p99 18.5, max 154.9
-  sprucefir: mean 0.25, p99 3.1, max 166.5
-  bigoak: mean 0.45, p99 12.1, max 150.9
-  dead_hw: mean 0.18, p99 5.0, max 61.4
-  dead_elmash: mean 0.00, p99 0.0, max 4.0
-  live_total: mean 3.02, p99 76.2, max 303.9
-cached ['oak', 'maple', 'aspen', 'cottonwood', 'sycamore', 'alder', 'eucalyptus', 'douglasfir', 'birch', 'elm', 'ash', 'basswood', 'willow', 'pine', 'sprucefir', 'bigoak', 'dead_hw', 'dead_elmash', 'live_total'] -> treemap_v1
-[ok] TreeMap 2023: tree density bands in 82s
+[ok] TreeMap 2023: tree density bands in 0s
 
 ===== NLCD 2021 land cover =====
-  first tile: matched 0.99 of pixels
-NLCD requests 48
-  lc_decid: mean 0.000
-  lc_conifer: mean 0.022
-  lc_mixed: mean 0.008
-  lc_wetwood: mean 0.002
-  lc_grass: mean 0.076
-  lc_pasture: mean 0.003
-  lc_devopen: mean 0.026
-  lc_shrub: mean 0.319
-  lc_water: mean 0.055
-cached ['lc_decid', 'lc_conifer', 'lc_mixed', 'lc_wetwood', 'lc_grass', 'lc_pasture', 'lc_devopen', 'lc_shrub', 'lc_water'] -> nlcd_v1
-[ok] NLCD 2021 land cover in 74s
+loaded 9 cached bands from nlcd_v1
+[ok] NLCD 2021 land cover in 0s
 
 ===== Terrain from USGS 3DEP =====
-elevation range -72.18728 3483.2593
-  slope p95 20.5, valley p5 -36.9
-cached ['slope', 'northness', 'valley'] -> terrain_v1
-[ok] Terrain from USGS 3DEP in 108s
+loaded 3 cached bands from terrain_v1
+[ok] Terrain from USGS 3DEP in 0s
 
 ===== Insect & disease damage (USFS aerial survey) =====
 IDS fields ['objectid', 'damage_area_id', 'created_date', 'modified_date', 'feature_user_id', 'observation_user_id', 'region_id', 'label', 'host_code', 'host', 'host_group_code', 'host_group', 'dca_code', 'dca_common_name', 'damage_type_code', 'damage_type', 'percent_affected_code', 'percent_affected', 'percent_min', 'percent_max', 'percent_mid', 'notes', 'observation_count', 'collection_mode', 'snapgrid_row', 'snapgrid_column', 'area_type', 'acres', 'status', 'survey_year', 'legacy_severity_code', 'legacy_severity', 'legacy_pattern_code', 'legacy_pattern', 'legacy_tpa', 'legacy_no_trees', 'legacy_forest_type_code', 'legacy_forest_type', 'grp', 'observation_id', 'ids_data_source', 'data_source_name', 'us_area', 'shape', 'st_area(shape)', 'st_perimeter(shape)']
@@ -123,14 +29,14 @@ sample props {"objectid": 909496, "damage_area_id": "{5fbeba35-89be-4ae9-a34c-3b
 fire features 1010
 sample props keys ['OBJECTID', 'poly_SourceOID', 'poly_IncidentName', 'poly_FeatureCategory', 'poly_MapMethod', 'poly_GISAcres', 'poly_DeleteThis', 'poly_FeatureAccess', 'poly_FeatureStatus', 'poly_IsVisible', 'poly_CreateDate', 'poly_DateCurrent', 'poly_PolygonDateTime', 'poly_IRWINID', 'poly_FORID', 'poly_Acres_AutoCalc', 'poly_SourceGlobalID', 'poly_Source', 'attr_SourceOID', 'attr_ABCDMisc', 'attr_ADSPermissionState', 'attr_CalculatedAcres', 'attr_ContainmentDateTime', 'attr_ControlDateTime', 'attr_CreatedBySystem', 'attr_IncidentSize', 'attr_DiscoveryAcres', 'attr_DispatchCenterID', 'attr_EstimatedCostToDate', 'attr_FinalAcres', 'attr_FFReportApprovedByTitle', 'attr_FFReportApprovedByUnit', 'attr_FFReportApprovedDate', 'attr_FireBehaviorGeneral', 'attr_FireBehaviorGeneral1', 'attr_FireBehaviorGeneral2', 'attr_FireBehaviorGeneral3', 'attr_FireCause', 'attr_FireCauseGeneral', 'attr_FireCauseSpecific']
   burned cells 129327
-[ok] Wildfire perimeters (NIFC) in 4s
+[ok] Wildfire perimeters (NIFC) in 5s
 
 ===== Trails and parking from OpenStreetMap =====
-raw: 579862 trail ways, 1563297 roads, 102119 parking
+raw: 580049 trail ways, 1563572 roads, 102170 parking
 road mask 15000x18800, 8.3% of cells near a road
-trails kept 84095, dropped {'sidewalk': 341448, 'along_road': 43840, 'private': 23270, 'short': 87209}
-trails 84095, trailhead parking 17253, 837 tiles, 48.7 MB
-[ok] Trails and parking from OpenStreetMap in 179s
+trails kept 84052, dropped {'sidewalk': 341596, 'along_road': 43883, 'private': 23269, 'short': 87249}
+trails 84052, trailhead parking 17273, 837 tiles, 48.7 MB
+[ok] Trails and parking from OpenStreetMap in 352s
 
 ===== Write grid tiles =====
 tiles written, 16.5 MB total, bands: ['oak', 'maple', 'aspen', 'cottonwood', 'sycamore', 'alder', 'eucalyptus', 'douglasfir', 'birch', 'elm', 'ash', 'basswood', 'willow', 'pine', 'sprucefir', 'bigoak', 'dead_hw', 'dead_elmash', 'live_total', 'lc_decid', 'lc_conifer', 'lc_mixed', 'lc_wetwood', 'lc_grass', 'lc_pasture', 'lc_devopen', 'lc_shrub', 'lc_water', 'slope', 'northness', 'valley', 'dmg_elmash', 'dmg_oak', 'dmg_aspen', 'dmg_storm', 'burn']
@@ -139,15 +45,15 @@ tiles written, 16.5 MB total, bands: ['oak', 'maple', 'aspen', 'cottonwood', 'sy
 ===== iNaturalist: local seasons and habitat models =====
 model features ['oak', 'maple', 'aspen', 'cottonwood', 'sycamore', 'alder', 'eucalyptus', 'douglasfir', 'birch', 'elm', 'ash', 'basswood', 'willow', 'pine', 'sprucefir', 'bigoak', 'dead_hw', 'dead_elmash', 'live_total', 'lc_decid', 'lc_conifer', 'lc_mixed', 'lc_wetwood', 'lc_grass', 'lc_pasture', 'lc_devopen', 'lc_shrub', 'lc_water', 'slope', 'valley', 'dmg_elmash', 'dmg_oak', 'dmg_aspen', 'dmg_storm', 'burn']
 background fungi points 60000 precise 49860
-chicken: n=3737 precise=3338 AUC=0.679 top: lc_shrub -0.70, cottonwood +0.57, dead_elmash -0.47, dmg_elmash -0.44, ash -0.29, slope -0.28
-blewit: n=1059 precise=886 AUC=0.567 top: dead_elmash -0.51, live_total +0.37, cottonwood +0.34, dmg_elmash +0.31, dmg_oak -0.28, pine -0.23
-morel: n=866 precise=689 AUC=0.757 top: lc_shrub -1.13, cottonwood +0.90, maple -0.81, alder -0.81, dmg_elmash -0.67, lc_grass -0.47
-shaggymane: n=776 precise=687 AUC=0.735 top: live_total +1.02, cottonwood +0.97, lc_shrub -0.91, lc_decid -0.84, maple -0.84, burn -0.47
-honey: n=659 precise=587 AUC=0.644 top: aspen -1.80, maple +0.90, cottonwood -0.79, live_total -0.73, lc_shrub -0.71, dmg_oak -0.58
-candycap: n=433 precise=335 AUC=0.669 top: sprucefir -2.46, dead_elmash +0.92, maple -0.85, aspen -0.70, lc_decid -0.68, oak -0.68
-lionsmane: n=353 precise=260 AUC=0.747 top: live_total -2.06, cottonwood -1.59, oak +1.30, dead_elmash +1.18, pine +0.69, lc_conifer +0.62
-oyster: n=233 precise=188 AUC=0.594 top: sprucefir -4.71, cottonwood -1.31, maple +1.19, aspen -0.95, sycamore -0.64, lc_shrub -0.47
-puffball: n=167 precise=154 AUC=0.702 top: eucalyptus -3.38, maple -1.43, cottonwood -1.18, dead_elmash -1.01, live_total +0.93, lc_shrub +0.71
-chanterelle: n=145 precise=68 AUC=0.64 top: sprucefir -3.31, lc_pasture -2.49, pine -2.28, maple -1.77, dead_elmash +1.27, live_total +0.99
+chicken: n=3738 precise=3339 AUC=0.679 top: lc_shrub -0.70, cottonwood +0.58, dead_elmash -0.48, dmg_elmash -0.45, ash -0.29, slope -0.28
+blewit: n=1059 precise=886 AUC=0.567 top: dead_elmash -0.50, live_total +0.37, cottonwood +0.34, dmg_elmash +0.31, dmg_oak -0.28, pine -0.23
+morel: n=866 precise=689 AUC=0.757 top: maple -1.30, lc_shrub -1.13, cottonwood +0.85, alder -0.62, lc_grass -0.47, lc_conifer -0.42
+shaggymane: n=776 precise=687 AUC=0.735 top: live_total +1.01, cottonwood +0.97, lc_shrub -0.91, maple -0.84, lc_decid -0.84, burn -0.47
+honey: n=659 precise=587 AUC=0.644 top: aspen -1.98, cottonwood -1.01, maple +0.73, live_total -0.73, lc_shrub -0.71, oak +0.51
+candycap: n=433 precise=335 AUC=0.669 top: sprucefir -2.53, lc_decid -0.88, alder -0.81, dead_elmash +0.78, maple -0.73, aspen -0.72
+lionsmane: n=353 precise=260 AUC=0.747 top: live_total -2.04, cottonwood -1.45, oak +1.29, dead_elmash +1.12, pine +0.68, lc_conifer +0.62
+oyster: n=233 precise=188 AUC=0.594 top: sprucefir -4.74, cottonwood -1.21, maple +1.09, aspen -0.97, sycamore -0.60, lc_shrub -0.47
+puffball: n=167 precise=154 AUC=0.702 top: eucalyptus -3.59, maple -1.74, cottonwood -1.29, dead_elmash -1.05, live_total +0.91, lc_shrub +0.71
+chanterelle: n=145 precise=68 AUC=0.641 top: sprucefir -3.03, lc_pasture -2.90, pine -2.23, maple -1.40, live_total +0.95, lc_shrub +0.93
 bolete: n=76 precise=36 (too few for a model)
-[ok] iNaturalist: local seasons and habitat models in 1349s
+[ok] iNaturalist: local seasons and habitat models in 1319s

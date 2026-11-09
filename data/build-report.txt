@@ -23,20 +23,20 @@ sample props {"objectid": 902871, "damage_area_id": "{9cb5853d-cf00-4891-948b-6d
   dmg_oak: cells 108785
   dmg_aspen: cells 62493
   dmg_storm: cells 10225
-[ok] Insect & disease damage (USFS aerial survey) in 25s
+[ok] Insect & disease damage (USFS aerial survey) in 19s
 
 ===== Wildfire perimeters (NIFC) =====
-fire features 1521
+fire features 1522
 sample props keys ['OBJECTID', 'poly_SourceOID', 'poly_IncidentName', 'poly_FeatureCategory', 'poly_MapMethod', 'poly_GISAcres', 'poly_DeleteThis', 'poly_FeatureAccess', 'poly_FeatureStatus', 'poly_IsVisible', 'poly_CreateDate', 'poly_DateCurrent', 'poly_PolygonDateTime', 'poly_IRWINID', 'poly_FORID', 'poly_Acres_AutoCalc', 'poly_SourceGlobalID', 'poly_Source', 'attr_SourceOID', 'attr_ABCDMisc', 'attr_ADSPermissionState', 'attr_CalculatedAcres', 'attr_ContainmentDateTime', 'attr_ControlDateTime', 'attr_CreatedBySystem', 'attr_IncidentSize', 'attr_DiscoveryAcres', 'attr_DispatchCenterID', 'attr_EstimatedCostToDate', 'attr_FinalAcres', 'attr_FFReportApprovedByTitle', 'attr_FFReportApprovedByUnit', 'attr_FFReportApprovedDate', 'attr_FireBehaviorGeneral', 'attr_FireBehaviorGeneral1', 'attr_FireBehaviorGeneral2', 'attr_FireBehaviorGeneral3', 'attr_FireCause', 'attr_FireCauseGeneral', 'attr_FireCauseSpecific']
-  burned cells 11455
-[ok] Wildfire perimeters (NIFC) in 1s
+  burned cells 11461
+[ok] Wildfire perimeters (NIFC) in 3s
 
 ===== Trails and parking from OpenStreetMap =====
-raw: 224523 trail ways, 760922 roads, 73558 parking
+raw: 224585 trail ways, 760972 roads, 73597 parking
 road mask 17222x18400, 10.1% of cells near a road
-trails kept 25241, dropped {'sidewalk': 144549, 'along_road': 18326, 'private': 5212, 'short': 31195}
-trails 25241, trailhead parking 11434, 1283 tiles, 10.3 MB
-[ok] Trails and parking from OpenStreetMap in 226s
+trails kept 25253, dropped {'sidewalk': 144578, 'along_road': 18337, 'private': 5211, 'short': 31206}
+trails 25253, trailhead parking 11437, 1283 tiles, 10.3 MB
+[ok] Trails and parking from OpenStreetMap in 155s
 
 ===== Write grid tiles =====
 tiles written, 48.7 MB total, bands: ['oak', 'maple', 'aspen', 'cottonwood', 'birch', 'elm', 'ash', 'basswood', 'willow', 'pine', 'sprucefir', 'bigoak', 'dead_hw', 'dead_elmash', 'live_total', 'lc_decid', 'lc_conifer', 'lc_mixed', 'lc_wetwood', 'lc_grass', 'lc_pasture', 'lc_devopen', 'lc_shrub', 'lc_water', 'slope', 'northness', 'valley', 'dmg_elmash', 'dmg_oak', 'dmg_aspen', 'dmg_storm', 'burn']
@@ -44,21 +44,21 @@ tiles written, 48.7 MB total, bands: ['oak', 'maple', 'aspen', 'cottonwood', 'bi
 
 ===== iNaturalist: local seasons and habitat models =====
 model features ['oak', 'maple', 'aspen', 'cottonwood', 'birch', 'elm', 'ash', 'basswood', 'willow', 'pine', 'sprucefir', 'bigoak', 'dead_hw', 'dead_elmash', 'live_total', 'lc_decid', 'lc_conifer', 'lc_mixed', 'lc_wetwood', 'lc_grass', 'lc_pasture', 'lc_devopen', 'lc_shrub', 'lc_water', 'slope', 'valley', 'dmg_elmash', 'dmg_oak', 'dmg_aspen', 'dmg_storm', 'burn']
-background fungi points 51578 precise 42012
-oyster: n=1842 precise=1510 AUC=0.616 top: live_total +0.61, bigoak -0.38, maple -0.26, burn -0.26, pine -0.19, elm +0.19
-hen: n=612 precise=458 AUC=0.606 top: live_total -1.44, oak +0.62, maple +0.46, sprucefir -0.38, basswood +0.36, burn -0.36
-chicken: n=2277 precise=1781 AUC=0.566 top: live_total -0.69, oak +0.50, maple +0.27, dmg_storm -0.22, basswood +0.18, lc_water +0.15
+background fungi points 51644 precise 42067
+oyster: n=1846 precise=1512 AUC=0.616 top: live_total +0.62, bigoak -0.38, maple -0.26, burn -0.26, pine -0.19, elm +0.19
+hen: n=614 precise=459 AUC=0.605 top: live_total -1.27, oak +0.54, maple +0.40, sprucefir -0.40, burn -0.35, dead_hw -0.34
+chicken: n=2278 precise=1781 AUC=0.566 top: live_total -0.69, oak +0.50, maple +0.27, dmg_storm -0.22, basswood +0.18, lc_water +0.15
 beefsteak: n=0 precise=0 (too few for a model)
-morel: n=451 precise=286 AUC=0.61 top: oak +0.88, live_total -0.66, bigoak -0.53, lc_wetwood -0.35, dmg_aspen -0.28, elm +0.26
-chanterelle: n=95 precise=62 AUC=0.672 top: lc_shrub -2.18, live_total +2.05, lc_decid +1.34, maple -0.62, basswood -0.60, lc_devopen +0.56
-trumpet: n=95 precise=71 AUC=0.791 top: lc_shrub -2.00, lc_decid +1.76, cottonwood -1.06, lc_water +0.97, lc_wetwood +0.88, elm -0.80
+morel: n=451 precise=286 AUC=0.61 top: oak +0.88, live_total -0.66, bigoak -0.54, lc_wetwood -0.35, dmg_aspen -0.28, elm +0.26
+chanterelle: n=95 precise=62 AUC=0.672 top: lc_shrub -2.21, live_total +2.05, lc_decid +1.35, maple -0.62, basswood -0.60, lc_devopen +0.56
+trumpet: n=95 precise=71 AUC=0.791 top: lc_shrub -2.00, lc_decid +1.75, cottonwood -1.06, lc_water +0.97, lc_wetwood +0.87, elm -0.80
 bolete: n=68 precise=48 (too few for a model)
-lobster: n=428 precise=318 AUC=0.729 top: cottonwood -2.33, live_total -1.36, lc_decid +1.18, willow -0.79, lc_wetwood +0.54, aspen +0.48
+lobster: n=428 precise=318 AUC=0.729 top: cottonwood -2.33, live_total -1.37, lc_decid +1.19, willow -0.79, lc_wetwood +0.55, aspen +0.49
 hedgehog: n=24 precise=13 (too few for a model)
 lionsmane: n=361 precise=287 AUC=0.621 top: oak +0.85, live_total -0.80, maple +0.76, lc_decid -0.44, basswood +0.36, lc_shrub -0.33
 cauliflower: n=2 precise=1 (too few for a model)
-puffball: n=903 precise=762 AUC=0.585 top: sprucefir -0.64, pine -0.57, oak -0.56, aspen -0.47, burn -0.28, dmg_aspen -0.25
-shaggymane: n=678 precise=591 AUC=0.699 top: oak -0.75, bigoak +0.38, aspen -0.27, sprucefir -0.26, maple -0.26, dmg_aspen -0.24
-honey: n=162 precise=131 AUC=0.576 top: dmg_elmash -0.82, lc_grass -0.48, burn -0.36, oak +0.36, maple +0.29, live_total -0.28
-velvetfoot: n=111 precise=91 AUC=0.439 top: live_total +2.53, oak -0.84, basswood -0.70, maple -0.70, sprucefir -0.64, dmg_aspen -0.58
-[ok] iNaturalist: local seasons and habitat models in 1031s
+puffball: n=903 precise=762 AUC=0.585 top: sprucefir -0.64, pine -0.57, oak -0.55, aspen -0.47, burn -0.28, dmg_aspen -0.25
+shaggymane: n=679 precise=592 AUC=0.699 top: oak -0.76, bigoak +0.38, aspen -0.27, maple -0.27, sprucefir -0.26, dmg_aspen -0.24
+honey: n=162 precise=131 AUC=0.576 top: dmg_elmash -0.81, lc_grass -0.48, burn -0.36, oak +0.36, maple +0.29, live_total -0.28
+velvetfoot: n=111 precise=91 AUC=0.439 top: live_total +2.52, oak -0.83, basswood -0.70, maple -0.69, sprucefir -0.64, dmg_aspen -0.58
+[ok] iNaturalist: local seasons and habitat models in 1178s
