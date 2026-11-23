@@ -26,34 +26,34 @@ sample props {"objectid": 909496, "damage_area_id": "{5fbeba35-89be-4ae9-a34c-3b
 [ok] Insect & disease damage (USFS aerial survey) in 1s
 
 ===== Wildfire perimeters (NIFC) =====
-fire features 1011
+fire features 1023
 sample props keys ['OBJECTID', 'poly_SourceOID', 'poly_IncidentName', 'poly_FeatureCategory', 'poly_MapMethod', 'poly_GISAcres', 'poly_DeleteThis', 'poly_FeatureAccess', 'poly_FeatureStatus', 'poly_IsVisible', 'poly_CreateDate', 'poly_DateCurrent', 'poly_PolygonDateTime', 'poly_IRWINID', 'poly_FORID', 'poly_Acres_AutoCalc', 'poly_SourceGlobalID', 'poly_Source', 'attr_SourceOID', 'attr_ABCDMisc', 'attr_ADSPermissionState', 'attr_CalculatedAcres', 'attr_ContainmentDateTime', 'attr_ControlDateTime', 'attr_CreatedBySystem', 'attr_IncidentSize', 'attr_DiscoveryAcres', 'attr_DispatchCenterID', 'attr_EstimatedCostToDate', 'attr_FinalAcres', 'attr_FFReportApprovedByTitle', 'attr_FFReportApprovedByUnit', 'attr_FFReportApprovedDate', 'attr_FireBehaviorGeneral', 'attr_FireBehaviorGeneral1', 'attr_FireBehaviorGeneral2', 'attr_FireBehaviorGeneral3', 'attr_FireCause', 'attr_FireCauseGeneral', 'attr_FireCauseSpecific']
-  burned cells 129327
-[ok] Wildfire perimeters (NIFC) in 3s
+  burned cells 129439
+[ok] Wildfire perimeters (NIFC) in 2s
 
 ===== Trails and parking from OpenStreetMap =====
-raw: 581552 trail ways, 1564191 roads, 102305 parking
+raw: 582804 trail ways, 1564666 roads, 102449 parking
 road mask 15000x18800, 8.3% of cells near a road
-trails kept 84123, dropped {'sidewalk': 342693, 'along_road': 43973, 'private': 23276, 'short': 87487}
-trails 84123, trailhead parking 17293, 837 tiles, 48.7 MB
-[ok] Trails and parking from OpenStreetMap in 373s
+trails kept 84139, dropped {'sidewalk': 343631, 'along_road': 44077, 'private': 23297, 'short': 87660}
+trails 84139, trailhead parking 17318, 837 tiles, 48.7 MB
+[ok] Trails and parking from OpenStreetMap in 1117s
 
 ===== Write grid tiles =====
 tiles written, 16.5 MB total, bands: ['oak', 'maple', 'aspen', 'cottonwood', 'sycamore', 'alder', 'eucalyptus', 'douglasfir', 'birch', 'elm', 'ash', 'basswood', 'willow', 'pine', 'sprucefir', 'bigoak', 'dead_hw', 'dead_elmash', 'live_total', 'lc_decid', 'lc_conifer', 'lc_mixed', 'lc_wetwood', 'lc_grass', 'lc_pasture', 'lc_devopen', 'lc_shrub', 'lc_water', 'slope', 'northness', 'valley', 'dmg_elmash', 'dmg_oak', 'dmg_aspen', 'dmg_storm', 'burn']
-[ok] Write grid tiles in 13s
+[ok] Write grid tiles in 12s
 
 ===== iNaturalist: local seasons and habitat models =====
 model features ['oak', 'maple', 'aspen', 'cottonwood', 'sycamore', 'alder', 'eucalyptus', 'douglasfir', 'birch', 'elm', 'ash', 'basswood', 'willow', 'pine', 'sprucefir', 'bigoak', 'dead_hw', 'dead_elmash', 'live_total', 'lc_decid', 'lc_conifer', 'lc_mixed', 'lc_wetwood', 'lc_grass', 'lc_pasture', 'lc_devopen', 'lc_shrub', 'lc_water', 'slope', 'valley', 'dmg_elmash', 'dmg_oak', 'dmg_aspen', 'dmg_storm', 'burn']
-background fungi points 60000 precise 49850
-chicken: n=3853 precise=3445 AUC=0.678 top: lc_shrub -0.69, cottonwood +0.65, dead_elmash -0.54, dmg_elmash -0.40, ash -0.30, slope -0.27
-blewit: n=1059 precise=886 AUC=0.568 top: dead_elmash -0.52, live_total +0.38, cottonwood +0.35, dmg_elmash +0.32, dmg_oak -0.28, pine -0.23
-morel: n=866 precise=689 AUC=0.757 top: lc_shrub -1.13, cottonwood +0.89, maple -0.81, alder -0.80, dmg_elmash -0.67, lc_grass -0.47
-shaggymane: n=779 precise=690 AUC=0.734 top: live_total +0.99, cottonwood +0.97, lc_shrub -0.90, lc_decid -0.84, maple -0.83, burn -0.47
-honey: n=659 precise=587 AUC=0.644 top: aspen -1.75, maple +0.84, cottonwood -0.78, lc_shrub -0.71, live_total -0.70, dmg_oak -0.54
-candycap: n=433 precise=335 AUC=0.669 top: sprucefir -2.44, dead_elmash +0.98, maple -0.88, aspen -0.68, oak -0.67, lc_decid -0.64
-lionsmane: n=354 precise=261 AUC=0.747 top: live_total -2.04, cottonwood -1.42, oak +1.29, dead_elmash +1.07, pine +0.68, lc_conifer +0.61
-oyster: n=235 precise=190 AUC=0.593 top: sprucefir -4.78, cottonwood -1.29, maple +1.20, aspen -0.98, sycamore -0.65, dead_elmash -0.45
-puffball: n=167 precise=154 AUC=0.702 top: eucalyptus -3.62, maple -1.70, cottonwood -1.28, dead_elmash -1.04, live_total +0.93, lc_shrub +0.72
-chanterelle: n=145 precise=68 AUC=0.64 top: sprucefir -3.10, lc_pasture -2.86, pine -2.28, maple -1.47, live_total +0.99, lc_shrub +0.93
-bolete: n=76 precise=36 (too few for a model)
-[ok] iNaturalist: local seasons and habitat models in 1274s
+background fungi points 60000 precise 49849
+chicken: n=3862 precise=3454 AUC=0.678 top: lc_shrub -0.69, cottonwood +0.61, dead_elmash -0.50, dmg_elmash -0.39, ash -0.31, lc_wetwood -0.27
+blewit: n=1060 precise=887 AUC=0.567 top: dead_elmash -0.51, live_total +0.39, cottonwood +0.35, dmg_elmash +0.32, dmg_oak -0.29, pine -0.24
+morel: n=866 precise=689 AUC=0.757 top: lc_shrub -1.13, cottonwood +0.90, alder -0.82, maple -0.81, dmg_elmash -0.67, lc_grass -0.47
+shaggymane: n=784 precise=694 AUC=0.734 top: live_total +1.00, cottonwood +0.95, lc_shrub -0.89, maple -0.84, lc_decid -0.84, burn -0.48
+honey: n=661 precise=589 AUC=0.644 top: aspen -1.80, maple +1.08, cottonwood -0.91, live_total -0.80, lc_shrub -0.71, oak +0.55
+candycap: n=433 precise=335 AUC=0.669 top: sprucefir -2.55, dead_elmash +0.86, maple -0.80, lc_decid -0.77, aspen -0.72, alder -0.72
+lionsmane: n=355 precise=262 AUC=0.747 top: live_total -2.17, oak +1.38, cottonwood -1.35, dead_elmash +0.81, pine +0.74, maple +0.71
+oyster: n=237 precise=192 AUC=0.586 top: sprucefir -4.64, cottonwood -1.10, aspen -0.97, maple +0.93, sycamore -0.57, lc_shrub -0.42
+puffball: n=167 precise=154 AUC=0.702 top: eucalyptus -3.54, maple -1.81, cottonwood -1.40, dead_elmash -1.16, live_total +0.91, alder -0.73
+chanterelle: n=147 precise=70 AUC=0.652 top: sprucefir -3.18, lc_pasture -2.71, pine -2.42, maple -1.55, live_total +1.19, lc_shrub +0.96
+bolete: n=77 precise=37 (too few for a model)
+[ok] iNaturalist: local seasons and habitat models in 1382s
